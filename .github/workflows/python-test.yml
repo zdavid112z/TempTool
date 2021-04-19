@@ -4,12 +4,12 @@
 name: Python Test
 
 on:
-  - push:
-      pathts:
-        - 'Server/**'
-  - pull_request:
-      pathts:
-        - 'Server/**'
+  push:
+    pathts:
+      - 'Server/**'
+  pull_request:
+    pathts:
+      - 'Server/**'
 
 jobs:
   build:
