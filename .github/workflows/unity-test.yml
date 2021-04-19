@@ -1,12 +1,12 @@
 name: Unity Test
 
 on:
-  - push:
-      pathts:
-        - 'Unity/**'
-  - pull_request:
-      pathts:
-        - 'Unity/**'
+  push:
+    paths:
+    - 'Unity/**'
+  pull_request:
+    paths:
+    - 'Unity/**'
 
 jobs:
   testAllModes:
