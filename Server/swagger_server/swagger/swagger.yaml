@@ -1,0 +1,228 @@
+openapi: 3.0.0
+info:
+  title: BigProjekt API
+  description: the best api
+  version: "0.1"
+servers:
+- url: /
+paths:
+  /files:
+    get:
+      summary: Returns a list of names of the files uploaded
+      operationId: files_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json
+              example:
+              - file1.nc
+              - file2.nc
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /files/{fileName}:
+    get:
+      summary: Get a list of all the variables defined in a file
+      operationId: files_file_name_get
+      parameters:
+      - name: fileName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: file6.nc
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileVariable'
+                x-content-type: application/json
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    put:
+      summary: Uploads a file
+      operationId: files_file_name_put
+      parameters:
+      - name: fileName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: file4.nc
+      requestBody:
+        description: The file contents in binary
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        "200":
+          description: File overwritten successfully
+        "201":
+          description: File uploaded successfully
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    post:
+      summary: Uploads a file and fails if it already exists
+      operationId: files_file_name_post
+      parameters:
+      - name: fileName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: file3.nc
+      requestBody:
+        description: The file contents in binary
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        "201":
+          description: File uploaded successfully
+        "409":
+          description: Another file with the same name already exists
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+    delete:
+      summary: Deletes a file
+      operationId: files_file_name_delete
+      parameters:
+      - name: fileName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: file5.nc
+      responses:
+        "200":
+          description: File deleted successfully
+        "404":
+          description: File not found
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /files/{fileName}/{variableName}:
+    get:
+      summary: Returns the complete data for a variable
+      operationId: files_file_name_variable_name_get
+      parameters:
+      - name: fileName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: file7.nc
+      - name: variableName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: temperature
+      responses:
+        "200":
+          description: Returns the data successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileVariableDetails'
+        "404":
+          description: File contains no such variable or file doesn't exist
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    FileVariable:
+      required:
+      - longname
+      - name
+      - type
+      type: object
+      properties:
+        name:
+          type: string
+          example: temperature
+        longname:
+          type: string
+          example: The surface temperature
+        type:
+          type: string
+          example: Geo2D
+          enum:
+          - 1D
+          - 2D
+          - Geo2D
+      example:
+        longname: The surface temperature
+        name: temperature
+        type: Geo2D
+    FileVariableDetails:
+      required:
+      - data
+      - dimensions
+      type: object
+      properties:
+        data:
+          type: array
+          example:
+          - 0.2
+          - 0.3
+          - 0.6
+          - 0.8
+          - 0.5
+          items:
+            type: number
+            format: float
+        dimensions:
+          type: array
+          example:
+          - 8
+          - 92
+          - 196
+          items:
+            type: integer
+        latitude:
+          type: integer
+          example: 1
+        longitude:
+          type: integer
+          example: 2
+        time:
+          type: integer
+          example: 0
+        level:
+          type: integer
+          example: 3
+      example:
+        data:
+        - 0.2
+        - 0.3
+        - 0.6
+        - 0.8
+        - 0.5
+        level: 3
+        latitude: 1
+        time: 0
+        dimensions:
+        - 8
+        - 92
+        - 196
+        longitude: 2
+
