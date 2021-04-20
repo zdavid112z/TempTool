@@ -1,9 +1,6 @@
 name: Build project
 
-on:
-  push:
-    brances:
-      - master
+on: [push, pull_request]
 
 jobs:
   buildUnity:
@@ -29,6 +26,7 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          unityVersion: 2020.3.4f1
       - uses: actions/upload-artifact@v2
         with:
           name: Build-${{ matrix.targetPlatform }}
