@@ -28,6 +28,7 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
           unityVersion: 2020.3.4f1
           projectPath: Unity
+          allowDirtyBuild: true
       - uses: actions/upload-artifact@v2
         with:
           name: Build-${{ matrix.targetPlatform }}
