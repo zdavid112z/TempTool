@@ -12,6 +12,7 @@ paths:
       operationId: files_get
       responses:
         "200":
+          description: Desc
           content:
             application/json:
               schema:
@@ -38,6 +39,7 @@ paths:
         example: file6.nc
       responses:
         "200":
+          description: Desc
           content:
             application/json:
               schema:
