@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temptool
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      deployment: temptool
+  template:
+    metadata:
+      labels:
+        deployment: temptool
+    spec:
+      containers:
+      - name: temptool
+        image: gcr.io/temptool/temptool
+        ports:
+        - containerPort: 80
