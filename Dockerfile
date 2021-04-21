@@ -1,4 +1,4 @@
-FROM zdavid112z/temptool:0.2
+FROM zdavid112z/temptool:0.3
 
 COPY build/WebGL/WebGL /www/data
 COPY Server /www/backend
