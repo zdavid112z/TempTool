@@ -5,7 +5,3 @@ commonLabels:
 resources:
 - deployment.yaml
 - loadbalancer.yaml
-images:
-- name: gcr.io/temptool/temptool
-  newName: gcr.io/temptool/temptool
-  newTag: 4511efd679f8e0c91de34c26b9dd878e3590b0b9

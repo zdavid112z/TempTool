@@ -6,7 +6,7 @@ env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: cluster-1    # Add your cluster name here.
   GKE_ZONE: us-central1-c   # Add your cluster zone here.
-  DEPLOYMENT_NAME: deployment # Add your deployment name here.
+  DEPLOYMENT_NAME: temptool # Add your deployment name here.
   IMAGE: temptool
 
 jobs:
