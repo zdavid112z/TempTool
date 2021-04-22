@@ -3,10 +3,10 @@ name: Unity Test
 on:
   push:
     paths:
-      - 'Unity/**'
+    - 'Unity/**'
   pull_request:
     paths:
-      - 'Unity/**'
+    - 'Unity/**'
 
 jobs:
   testAllModes:
