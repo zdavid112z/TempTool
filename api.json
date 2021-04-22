@@ -1,0 +1,577 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "temptool",
+      "version": "1.0",
+      "contact": {
+        "name": "temptool admin",
+        "url": "temptool.org",
+        "email": "a@a.com"
+      },
+      "description": "Temptool api 1.0"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:8080"
+      }
+    ],
+    "paths": {
+      "/api/files": {
+        "get": {
+          "summary": "Your GET endpoint",
+          "tags": [
+            "file_operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {},
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "integer"
+                        },
+                        "upload_date": {
+                          "type": "integer",
+                          "description": "unix time"
+                        },
+                        "last_used_date": {
+                          "type": "integer",
+                          "description": "unix time"
+                        },
+                        "uploaded_by": {
+                          "type": "string"
+                        },
+                        "is_permanent": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                },
+                "application/xml": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "multipart/form-data": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "text/html": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "text/plain": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/EDI-X12": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/EDIFACT": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/atom+xml": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/font-woff": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/gzip": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/javascript": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            }
+          },
+          "operationId": "get-api-files",
+          "parameters": [],
+          "description": "Get the list of available files."
+        },
+        "post": {
+          "summary": "",
+          "operationId": "post-api-files",
+          "responses": {
+            "201": {
+              "description": "Created"
+            },
+            "400": {
+              "description": "Bad Request (bad file/filename)"
+            },
+            "401": {
+              "description": "Unauthorized (invalid token)"
+            },
+            "409": {
+              "description": "Conflict"
+            }
+          },
+          "requestBody": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "description": ""
+          },
+          "parameters": [
+            {
+              "schema": {
+                "type": "string"
+              },
+              "in": "header",
+              "name": "file_name"
+            },
+            {
+              "schema": {
+                "type": "string"
+              },
+              "in": "cookie",
+              "name": "user_id"
+            }
+          ],
+          "security": [
+            {
+              "JWT": []
+            }
+          ],
+          "description": "Add a file to the database.",
+          "tags": [
+            "file_operations"
+          ]
+        }
+      },
+      "/api/files/{filename}": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "filename",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "get": {
+          "summary": "Your GET endpoint",
+          "tags": [
+            "file_operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "filename": {
+                        "type": "string"
+                      },
+                      "upload_date": {
+                        "type": "integer"
+                      },
+                      "last_used_date": {
+                        "type": "integer"
+                      },
+                      "uploaded_by": {
+                        "type": "string"
+                      },
+                      "is_permanent": {
+                        "type": "boolean"
+                      },
+                      "size": {
+                        "type": "integer"
+                      },
+                      "parameters": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "unit": {
+                              "type": "string"
+                            },
+                            "element_bytes": {
+                              "type": "integer"
+                            },
+                            "width": {
+                              "type": "integer"
+                            },
+                            "height": {
+                              "type": "integer"
+                            },
+                            "number_layers": {
+                              "type": "integer"
+                            },
+                            "num_dates": {
+                              "type": "integer"
+                            },
+                            "start_date": {
+                              "type": "integer",
+                              "description": "unix time"
+                            },
+                            "end_date": {
+                              "type": "integer",
+                              "description": "unix time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            }
+          },
+          "operationId": "get-api-files-filename",
+          "parameters": [
+            {
+              "schema": {
+                "type": "boolean"
+              },
+              "in": "query",
+              "name": "original"
+            }
+          ],
+          "description": "Get information about specific file including its parameters."
+        },
+        "delete": {
+          "summary": "",
+          "operationId": "delete-api-files-filename",
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          },
+          "security": [
+            {
+              "JWT": []
+            }
+          ],
+          "parameters": [
+            {
+              "schema": {
+                "type": "string"
+              },
+              "in": "cookie",
+              "name": "user_id"
+            }
+          ],
+          "description": "Delete a file.",
+          "tags": [
+            "file_operations"
+          ]
+        }
+      },
+      "/api/files/{filename}/{parameter}": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "filename",
+            "in": "path",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "parameter",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "get": {
+          "summary": "Your GET endpoint",
+          "tags": [
+            "file_operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          },
+          "operationId": "get-api-files-filename-parameter",
+          "description": "Get the data from a given parameter within a file.\nThe result is a matrix indexed by date, layer, height, width."
+        }
+      },
+      "/api/login": {
+        "post": {
+          "summary": "",
+          "operationId": "post-api-login",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {},
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "expiration_date": {
+                        "type": "integer",
+                        "description": "unix time"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "201": {
+              "description": "Created",
+              "headers": {
+                "authentication": {
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found"
+            }
+          },
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "login_code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "email"
+                  ]
+                }
+              }
+            }
+          },
+          "description": "Authenticate a user. If the login code is missing then generate and send a new one to the provided email, otherwise return the generated JWT.",
+          "tags": [
+            "admin_login"
+          ]
+        }
+      },
+      "/api/admins": {
+        "get": {
+          "summary": "Your GET endpoint",
+          "tags": [
+            "admin_operations"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "operationId": "get-api-admins",
+          "description": "Get the list of admins."
+        },
+        "post": {
+          "summary": "",
+          "operationId": "post-api-admins",
+          "responses": {
+            "201": {
+              "description": "Created"
+            },
+            "204": {
+              "description": "No Content"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "JWT": []
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "description": "Add a new admin to the list.",
+          "tags": [
+            "admin_operations"
+          ]
+        },
+        "delete": {
+          "summary": "",
+          "operationId": "delete-api-admins",
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "204": {
+              "description": "No Content"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "JWT": []
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "Delete an admin from the list.",
+          "tags": [
+            "admin_operations"
+          ]
+        }
+      }
+    },
+    "components": {
+      "schemas": {},
+      "securitySchemes": {
+        "JWT": {
+          "type": "http",
+          "scheme": "bearer"
+        }
+      }
+    },
+    "security": [
+      {
+        "jwt": []
+      }
+    ],
+    "tags": [
+      {
+        "name": "file_operations"
+      },
+      {
+        "name": "admin_login"
+      },
+      {
+        "name": "admin_operations"
+      }
+    ]
+  }
+  

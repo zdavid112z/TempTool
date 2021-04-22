@@ -2,10 +2,10 @@ name: Unity Test
 
 on:
   push:
-    pathts:
+    paths:
       - 'Unity/**'
   pull_request:
-    pathts:
+    paths:
       - 'Unity/**'
 
 jobs:
