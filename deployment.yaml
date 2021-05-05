@@ -15,5 +15,12 @@ spec:
       containers:
       - name: temptool
         image: gcr.io/temptool/temptool
+        env:
+          - name: FIRESTORE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: firestore-key
+                key: FIRESTORE_KEY
+                optional: false
         ports:
         - containerPort: 80
