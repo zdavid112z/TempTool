@@ -20,24 +20,25 @@ DEPLOYMENT_NAME=temptool
 TAG=$(uuidgen)
 
 # Save kustomization.yaml
-cp kustomization.yaml __kustomization.yaml
+cp kustomization.yaml __kustomization.yaml || { echo "Failed to backup old kustomization.yaml file"; exit 1; }
+
+# Setup kustomize
+rm -rf kustomize
+curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64 || { echo "Failed to download kustomize"; exit 1; }
+chmod u+x ./kustomize || { echo "Failed make the kustomize file executable"; exit 1; }
 
 # Build and publish docker image
 echo "#### Building docker ####"
-docker build --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" .
-docker push "gcr.io/$PROJECT_ID/$IMAGE:$TAG"
-
-# Setup kustomize
-curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
-chmod u+x ./kustomize
+docker build --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" . || { echo "Failed to build docker image"; exit 1; }
+docker push "gcr.io/$PROJECT_ID/$IMAGE:$TAG" || { echo "Failed to push docker image"; exit 1; }
 
 # Deploy
 echo "#### Deploying to kubernetes ####"
-./kustomize edit set image gcr.io/temptool/temptool=gcr.io/$PROJECT_ID/$IMAGE:$TAG
-./kustomize build . | kubectl apply -f -
-kubectl rollout status deployment/$DEPLOYMENT_NAME
-kubectl get services -o wide
+./kustomize edit set image gcr.io/temptool/temptool=gcr.io/$PROJECT_ID/$IMAGE:$TAG || { echo "Failed to modify the kustomize file to use the newly built docker image"; exit 1; }
+./kustomize build . | kubectl apply -f - || { echo "Failed to deploy"; exit 1; }
+kubectl rollout status deployment/$DEPLOYMENT_NAME || echo "Failed to watch deployment"
+kubectl get services -o wide || echo "Failed to get kubernetes services"
 
 # Cleanup
-rm kustomize kustomization.yaml
-mv __kustomization.yaml kustomization.yaml
+rm kustomize kustomization.yaml || echo "Failed to cleanup"
+mv __kustomization.yaml kustomization.yaml || echo "Failed to restore kustomization.yaml"
