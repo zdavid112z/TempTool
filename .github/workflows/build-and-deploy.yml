@@ -9,6 +9,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  FIRESTORE_KEY: ${{ secrets.FIRESTORE_KEY }}
   GKE_CLUSTER: cluster-1
   GKE_ZONE: us-central1-c
   DEPLOYMENT_NAME: temptool
@@ -82,7 +83,9 @@ jobs:
       # Deploy the Docker image to the GKE cluster
       - name: Deploy to GKE
         run: |-
+          printenv FIRESTORE_KEY > FIRESTORE_KEY
           ./kustomize edit set image gcr.io/temptool/temptool=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+          ./kustomize edit add secret firestore-key --from-file=FIRESTORE_KEY
           ./kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
           kubectl get services -o wide
