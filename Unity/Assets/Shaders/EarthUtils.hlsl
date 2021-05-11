@@ -22,6 +22,10 @@ float map(float value, float low1, float high1, float low2, float high2) {
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1);
 }
 
+void map_float(float value, float2 fromMinMax, float2 toMinMax, out float result) {
+    result = map(value, fromMinMax.x, fromMinMax.y, toMinMax.x, toMinMax.y);
+}
+
 /**
  * Unity-accesible wrapper for the given function.
  */

@@ -25,7 +25,7 @@ namespace CloudAPI
             };
         }
 
-        public IEnumerator GetFiles(Action<FileData[], long> onSuccess, Action<ErrorDetails> onError)
+        public IEnumerator GetFiles(Action<FileInfo[], long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kGET,
@@ -34,59 +34,63 @@ namespace CloudAPI
                 onError);
         }
 
-        public IEnumerator PostFile(string fileName, byte[] fileData, 
+        public IEnumerator PostFile(string filePath,
             Action<long> onSuccess, Action<ErrorDetails> onError)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerator GetFileOriginal(string fileName, 
+        public IEnumerator GetFileOriginal(string fileId, 
             Action<byte[], long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kGET,
-                $"{baseURI}/files/{fileName}",
+                $"{baseURI}/files/{fileId}",
                 onSuccess,
                 onError,
                 null,
                 new (string, string)[] { ("original", "true") });
         }
 
-        public IEnumerator GetFileDetailed(string fileName, 
-            Action<FileDataDetailed, long> onSuccess, Action<ErrorDetails> onError)
+        public IEnumerator GetFileDetailed(string fileId, 
+            Action<FileInfoDetailed, long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kGET,
-                $"{baseURI}/files/{fileName}",
+                $"{baseURI}/files/{fileId}",
                 ConvertOnSuccess(onSuccess),
                 onError,
                 null,
                 new (string, string)[] { ("original", "false") });
         }
 
-        public IEnumerator DeleteFile(string fileName, 
+        public IEnumerator DeleteFile(string fileId, 
             Action<long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kDELETE,
-                $"{baseURI}/files/{fileName}",
+                $"{baseURI}/files/{fileId}",
                 ConvertOnSuccess(onSuccess),
                 onError);
         }
 
-        public IEnumerator GetFileParameter(string fileName, FileParameterData parameterData,
+        public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData,
             Action<float[,,,], long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kGET,
-                $"{baseURI}/files/{fileName}/{parameterData.name}",
+                $"{baseURI}/files/{fileId}/{parameterData.name}",
                 (byte[] body, long responseCode) => {
+                    FileParameterData data = 
+                        JsonUtility.FromJson<FileParameterData>(
+                            Encoding.UTF8.GetString(body));
+                    byte[] bytesData = Convert.FromBase64String(data.data);
                     onSuccess(
-                        DataConverter.FromBytes(body,
-                        parameterData.num_dates,
-                        parameterData.number_layers,
-                        parameterData.height,
-                        parameterData.width),
+                        DataConverter.FromBytes(bytesData,
+                            parameterData.num_dates,
+                            parameterData.num_layers,
+                            parameterData.height,
+                            parameterData.width),
                         responseCode);
                 },
                 onError);

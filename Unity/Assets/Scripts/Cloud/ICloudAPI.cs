@@ -51,53 +51,66 @@ namespace CloudAPI
         /// The first parameter is the list of files and the second one is the
         /// response code</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator GetFiles(Action<FileData[], long> onSuccess, Action<ErrorDetails> onError);
+        IEnumerator GetFiles(Action<FileInfo[], long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
         /// Uploads a file
         /// </summary>
-        /// <param name="fileName">The name of the file</param>
-        /// <param name="fileData">The contents of the file</param>
+        /// <param name="filePath">The path to the file to upload</param>
         /// <param name="onSuccess">Function to call if the request succeeds.
         /// The parameter is the response code from the request</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator PostFile(string fileName, byte[] fileData, 
+        IEnumerator PostFile(string filePath,
             Action<long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
         /// Get the original data from a selected file, as it was when it was
         /// originally uploaded
         /// </summary>
-        /// <param name="fileName">The name of the file to downlaod</param>
+        /// <param name="fileId">The id of the file to downlaod</param>
         /// <param name="onSuccess">Function to call if the request succeeds.
         /// The first parameter is an array of bytes representing the contents
         /// of the original file and the second one is the request response
         /// code</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator GetFileOriginal(string fileName, 
+        IEnumerator GetFileOriginal(string fileId, 
             Action<byte[], long> onSuccess, Action<ErrorDetails> onError);
+
+        /// <summary>
+        /// Get the matrix of data points for a selected parameter
+        /// </summary>
+        /// <param name="fileId">The id of the file which contains the
+        /// parameter</param>
+        /// <param name="parameterData">The parameter to download
+        /// </param>
+        /// <param name="onSuccess">Function to call if the request succeeds.
+        /// The first parameter is the matrix of data points and the second
+        /// one is the request response code</param>
+        /// <param name="onError">Function to call if the request fails</param>
+        public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData,
+            Action<float[,,,], long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
         /// Get details about a selected file, including a list of its
         /// parameters
         /// </summary>
-        /// <param name="fileName">The name of the file whose details to
+        /// <param name="fileId">The id of the file whose details to
         /// download</param>
         /// <param name="onSuccess">Function to call if the request succeeds.
         /// The first parameter contains the details of the file and the second
         /// one is the request response code</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator GetFileDetailed(string fileName, 
-            Action<FileDataDetailed, long> onSuccess, Action<ErrorDetails> onError);
+        IEnumerator GetFileDetailed(string fileId, 
+            Action<FileInfoDetailed, long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
         /// Send a request to delete a file
         /// </summary>
-        /// <param name="fileName">The name of the file to delete</param>
+        /// <param name="fileId">The id of the file to delete</param>
         /// <param name="onSuccess">Function to call if the request succeeds.
         /// The parameter is the response code from the request</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator DeleteFile(string fileName, 
+        IEnumerator DeleteFile(string fileId, 
             Action<long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
