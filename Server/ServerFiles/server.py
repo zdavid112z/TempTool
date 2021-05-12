@@ -64,11 +64,6 @@ def get_files():
     return resp
 
 
-@app.route('/')
-def form():
-    return render_template('form.html')
-
-
 @app.route('/api/files', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
