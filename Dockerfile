@@ -11,4 +11,6 @@ COPY default.conf /etc/nginx/conf.d
 
 RUN chmod +x /www/backend/start.sh
 RUN chmod +x /www/backend/run_backend.sh
+
 RUN pip3 install -r /www/backend/requirements.txt
+
