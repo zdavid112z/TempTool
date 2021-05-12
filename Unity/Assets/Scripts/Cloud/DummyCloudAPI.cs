@@ -75,6 +75,26 @@ namespace CloudAPI
                             lon_min = 21.150052f,
                             lat_max = 47.864813f,
                             lon_max = 28.968124f
+                        },
+                        new FileParameterInfo()
+                        {
+                            name = "Air Pressure",
+                            description = "Air pressure at ground level",
+                            element_bytes = 4,
+                            num_layers = 1,
+                            start_date = 1589034542,
+                            end_date = 1589293742,
+                            type = "Geo2D",
+                            width = 72,
+                            height = 48,
+                            num_dates = 8,
+                            unit = "%",
+                            layer_min = 0,
+                            layer_max = 0,
+                            lat_min = -180,
+                            lon_min = 0,
+                            lat_max = 180,
+                            lon_max = 355
                         }
                     }
                 },
@@ -199,7 +219,7 @@ namespace CloudAPI
                 onError(GenProtocolErrorDetails(404));
         }
 
-        public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData, Action<float[,,,], long> onSuccess, Action<ErrorDetails> onError)
+        public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData, Action<FileParameterDataBin, long> onSuccess, Action<ErrorDetails> onError)
         {
             yield return new WaitForSeconds(waitDelay);
 
@@ -291,24 +311,19 @@ namespace CloudAPI
             onError(GenProtocolErrorDetails(400));
         }
 
-        private float[,,,] GenerateRandomMatrix(FileParameterInfo param)
+        private FileParameterDataBin GenerateRandomMatrix(FileParameterInfo param)
         {
             var random = new System.Random(param.GetHashCode());
-            float[,,,] result = new float[param.num_dates, param.num_layers, param.height, param.width];
-            for (int t = 0; t < param.num_dates; t++)
+            int count = param.num_dates * param.num_layers * param.height * param.width;
+            float[] result = new float[count];
+            for (int i = 0; i < count; i++)
+                result[i] = (float) random.NextDouble();
+
+            return new FileParameterDataBin()
             {
-                for (int l = 0; l < param.num_layers; l++)
-                {
-                    for (int i = 0; i < param.height; i++)
-                    {
-                        for (int j = 0; j < param.width; j++)
-                        {
-                            result[t, l, i, j] = (float) random.NextDouble();
-                        }
-                    }
-                }
-            }
-            return result;
+                data = result,
+                info = param
+            };
         }
 
         private ErrorDetails GenProtocolErrorDetails(long code)

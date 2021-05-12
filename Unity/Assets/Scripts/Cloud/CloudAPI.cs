@@ -75,7 +75,7 @@ namespace CloudAPI
         }
 
         public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData,
-            Action<float[,,,], long> onSuccess, Action<ErrorDetails> onError)
+            Action<FileParameterDataBin, long> onSuccess, Action<ErrorDetails> onError)
         {
             return WebRequest(
                 RequestType.kGET,
@@ -86,11 +86,7 @@ namespace CloudAPI
                             Encoding.UTF8.GetString(body));
                     byte[] bytesData = Convert.FromBase64String(data.data);
                     onSuccess(
-                        DataConverter.FromBytes(bytesData,
-                            parameterData.num_dates,
-                            parameterData.num_layers,
-                            parameterData.height,
-                            parameterData.width),
+                        DataConverter.FromBytes(bytesData, parameterData),
                         responseCode);
                 },
                 onError);

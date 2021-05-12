@@ -22,8 +22,37 @@ float map(float value, float low1, float high1, float low2, float high2) {
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1);
 }
 
-void map_float(float value, float2 fromMinMax, float2 toMinMax, out float result) {
+void Map_float(float value, float2 fromMinMax, float2 toMinMax, out float result) {
     result = map(value, fromMinMax.x, fromMinMax.y, toMinMax.x, toMinMax.y);
+}
+
+void MapRad_float(float valueRad, float2 fromMinMaxDeg, float2 toMinMaxDeg, out float resultRad) {
+    float2 fromMinMaxRad = fromMinMaxDeg * PI / 180.f;
+    float2 toMinMaxRad = toMinMaxDeg * PI / 180.f;
+    resultRad = map(valueRad, fromMinMaxRad.x, fromMinMaxRad.y, toMinMaxRad.x, toMinMaxRad.y);
+}
+
+void IsOutside01Any_float(float2 uv, out bool result)
+{
+    result = uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1;
+}
+
+void MapClamp_float(float value, float2 fromMinMax, float2 toMinMax, out float result) {
+    result = clamp(map(value, fromMinMax.x, fromMinMax.y, toMinMax.x, toMinMax.y), toMinMax.x, toMinMax.y);
+}
+
+void ToRad_float(float angle, out float result) {
+    result = angle * PI / 180.f;
+}
+
+void ToRad2_float(float2 angles, out float2 result) {
+    result = angles * PI / 180.f;
+}
+
+void IsWrapping_float(float2 lonMinMax, float width, float epsilon, out bool isWrapping) {
+    float segmentLength = (lonMinMax.y - lonMinMax.x) / (width - 1);
+    isWrapping = abs(lonMinMax.x) < epsilon
+        && abs(360 - lonMinMax.y - segmentLength) < epsilon;
 }
 
 /**

@@ -88,7 +88,7 @@ namespace CloudAPI
         /// one is the request response code</param>
         /// <param name="onError">Function to call if the request fails</param>
         public IEnumerator GetFileParameter(string fileId, FileParameterInfo parameterData,
-            Action<float[,,,], long> onSuccess, Action<ErrorDetails> onError);
+            Action<FileParameterDataBin, long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>
         /// Get details about a selected file, including a list of its

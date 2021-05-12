@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Assertions;
 
 namespace CloudAPI
 {
@@ -60,6 +61,37 @@ namespace CloudAPI
     public class FileParameterData
     {
         public string data;
+    }
+
+    public class FileParameterDataBin
+    {
+        public FileParameterInfo info;
+        public float[] data;
+
+        public float this[int t, int l, int y, int x]
+        {
+            get
+            {
+                Assert.IsTrue(
+                    t >= 0 && t < info.num_dates &&
+                    l >= 0 && l < info.num_layers &&
+                    y >= 0 && y < info.height &&
+                    x >= 0 && x < info.width);
+                return data[t * info.num_layers * info.height * info.width +
+                    l * info.height * info.width + y * info.width + x];
+            }
+            set
+            {
+                Assert.IsTrue(
+                    t >= 0 && t < info.num_dates &&
+                    l >= 0 && l < info.num_layers &&
+                    y >= 0 && y < info.height &&
+                    x >= 0 && x < info.width);
+                data[t * info.num_layers * info.height * info.width +
+                    l * info.height * info.width + y * info.width + x] = value;
+            }
+        }
+
     }
 
     [Serializable]
