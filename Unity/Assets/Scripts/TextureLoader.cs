@@ -11,9 +11,10 @@ public class TextureLoader : MonoBehaviour
         int w = data.info.width;
         int h = data.info.height;
         int l = data.info.num_layers;
+        int offset = w * h * layer;
         Texture2DArray array = new Texture2DArray(w, h, num_dates, TextureFormat.RFloat, false, false);
         for (int t = 0; t < num_dates; t++)
-            array.SetPixelData<float>(data.data, 0, t, l * w * h * t);
+            array.SetPixelData<float>(data.data, 0, t, l * w * h * t + offset);
         array.Apply(false);
         var material = GetComponentInParent<Renderer>().material;
         material.SetTexture("Texture2DArray_28e7e253cb18486a8c14899af2143136", array); // Textures
