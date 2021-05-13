@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AutocompleteSearch : MonoBehaviour {
-    List<string> files = new List<string>() { "a", "aa", "aaa", "aaron", "ab", "abandoned", "abc", "aberdeen", "abilities", "ability", "able", "about", "above", "abraham", "abroad",
-       "a1", "aa2", "aaa3", "aaron1", "ab1", "abandoned1", "abc1", "aberdeen1", "abilities1", "ability1", "able1", "about1", "above1", "abraham1", "abroad1" };
-    string text = "";
+    List<CloudAPI.FileInfo> files = new List<CloudAPI.FileInfo>();
+    string text = null;
+    bool keepExtended = false;
+    int framesUnfocused;
+    public const int maxFramesUnfocused = 40;
     public InputField field;
     public Image container;
 
@@ -19,6 +22,8 @@ public class AutocompleteSearch : MonoBehaviour {
     List<GameObject> items = new List<GameObject>();
     int height = 0;
 
+    private CloudAPI.ICloudAPI cloud;
+
     private void DestroyItems()
     {
         for (int i = 0; i < items.Count; i++)
@@ -29,17 +34,43 @@ public class AutocompleteSearch : MonoBehaviour {
 
     void Start()
     {
-      // field.OnSubmit.AddListener(HandleSearchValue);
+        // field.OnSubmit.AddListener(HandleSearchValue);
+        framesUnfocused = maxFramesUnfocused;
+        cloud = CloudAPI.CloudAPIManager.GetInstance().cloud;
+        StartCoroutine(cloud.GetFiles(
+            (CloudAPI.FileInfo[] f, long responseCode) =>
+            {
+                files = f.ToList();
+            }, (CloudAPI.ErrorDetails error) =>
+            {
+                Debug.LogError(error);
+            }));
     }
 
     void Update()//HandleSearchValue()
     {
         string oldString = text;
-        text = field.text;
+        string newString = field.text;
 
-        if (!string.IsNullOrEmpty(text) && text != oldString)
+        if (!field.isFocused)
         {
-            List<string> found = files.FindAll(w => w.ToLower().StartsWith(text.ToLower()));
+            framesUnfocused = Mathf.Min(framesUnfocused + 1, maxFramesUnfocused);
+        }
+        else
+        {
+            framesUnfocused = 0;
+        }
+        if (keepExtended)
+        {
+            framesUnfocused = 0;
+        }
+
+        if (framesUnfocused < maxFramesUnfocused &&
+            (newString != oldString ||
+                (string.IsNullOrEmpty(newString) && items.Count == 0)))
+        {
+            text = newString;
+            List<CloudAPI.FileInfo> found = files.FindAll(w => w.name.ToLower().Contains(text.ToLower()));
             if (found.Count > 0)
             {
                 DestroyItems();
@@ -49,7 +80,9 @@ public class AutocompleteSearch : MonoBehaviour {
                     copy.transform.SetParent(content.gameObject.transform, false);
                     
                     copy.transform.localPosition = Vector3.zero;
-                    copy.GetComponentInChildren<Text>().text = found[i];
+                    copy.GetComponent<SearchItem>().file = found[i];
+                    copy.GetComponent<SearchItem>().search = this;
+                    copy.GetComponentInChildren<Text>().text = found[i].name;
                     items.Add(copy);
                 }
                 height = Mathf.Min(40 * found.Count, 150);
@@ -63,12 +96,24 @@ public class AutocompleteSearch : MonoBehaviour {
             }
         }
 
-        if (text == "")
+        if (framesUnfocused >= maxFramesUnfocused)
         {
-           DestroyItems();
+            text = null;
+            DestroyItems();
             height = 0;
             field.image.sprite = search;
         }
         container.rectTransform.sizeDelta = new Vector2(256, height);
+    }
+
+    public void KeepExtended()
+    {
+        keepExtended = true;
+    }
+
+    public void Collapse()
+    {
+        keepExtended = false;
+        framesUnfocused = maxFramesUnfocused;
     }
 }

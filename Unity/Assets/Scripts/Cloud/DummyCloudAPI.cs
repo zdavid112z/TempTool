@@ -130,6 +130,39 @@ namespace CloudAPI
                             lon_max = -81.978124f
                         }
                     }
+                },
+                new FileInfoDetailed()
+                {
+                    id = "ara_ara",
+                    filename = "usa.nc",
+                    is_permanent = true,
+                    last_used_date = 1620570542,
+                    size = 1024 * 1024 * 16,
+                    uploaded_by = "master@temptool.org",
+                    upload_date = 1620397742,
+                    parameters = new FileParameterInfo[]
+                    {
+                        new FileParameterInfo()
+                        {
+                            name = "air_quality",
+                            description = "Air Quality",
+                            element_bytes = 4,
+                            num_layers = 1,
+                            start_date = 1559917742,
+                            end_date = 1560176942,
+                            type = "Geo2D",
+                            width = 256,
+                            height = 256,
+                            num_dates = 2,
+                            unit = "C",
+                            layer_min = 0,
+                            layer_max = 0,
+                            lat_min = 22.526144f,
+                            lon_min = -121.945710f,
+                            lat_max = 44.756328f,
+                            lon_max = -68.540308f
+                        }
+                    }
                 }
             };
         }

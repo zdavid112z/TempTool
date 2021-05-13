@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class Track : MonoBehaviour
 {
+    public TextureLoader textureLoader;
     public Slider slider;
     public Button button;
     public Sprite playSprite;
@@ -19,13 +20,17 @@ public class Track : MonoBehaviour
     }
     void TaskOnClick()
     {
-        Debug.Log("You have clicked the button!");
         play = !play;
+        if (play && slider.value >= slider.maxValue)
+        {
+            slider.value = 0;
+        }
 
     }
     // Update is called once per frame
     void Update()
     {
+        textureLoader.SetTimeProgress(slider.value);
         if (play)
         {
             slider.value += 0.1f;
