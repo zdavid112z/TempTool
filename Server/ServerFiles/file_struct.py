@@ -48,9 +48,6 @@ class Parameter:
         doc.set(data_to_upload)
 
         data_array = np.array(self.__data[:])
-        # TODO time x layer x lat * long -> de verificat 
-        # reindexat, flatten, tobytes, comprimare (zlib)
-        # date encodate in baza 64
         list_data = data_array.tolist()
         filename = "param_" + source_id + "_" + str(self.__name) + ".json"
         json.dump(list_data, codecs.open(filename, 'w'), separators=(',', ':'), sort_keys=True, indent=4)
@@ -60,7 +57,6 @@ class Parameter:
         blob = bucket.blob(filename)
         with open(filename, 'rb') as json_file:
             blob.upload_from_file(json_file)
-
 
         ref_param.set({u'data': ""})
         os.remove(filename)
