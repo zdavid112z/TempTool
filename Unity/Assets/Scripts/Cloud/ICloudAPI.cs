@@ -12,6 +12,11 @@ namespace CloudAPI
         public string error;
         public long responseCode;
         public byte[] body;
+
+        public override string ToString()
+        {
+            return $"Error {result} with error code {responseCode}: {error}. Body returned: {body}";
+        }
     }
 
     public class MIMEType
