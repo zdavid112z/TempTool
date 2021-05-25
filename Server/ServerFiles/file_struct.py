@@ -2,6 +2,8 @@ import codecs
 import json
 import os
 import re
+import base64
+import zlib
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -48,9 +50,11 @@ class Parameter:
         doc.set(data_to_upload)
 
         data_array = np.array(self.__data[:])
-        list_data = data_array.tolist()
+        list_data = base64.b64encode((np.array(data_array.tolist())).flatten())
+        compress_data = zlib.compress(list_data)
         filename = "param_" + source_id + "_" + str(self.__name) + ".json"
-        json.dump(list_data, codecs.open(filename, 'w'), separators=(',', ':'), sort_keys=True, indent=4)
+        with open(filename, 'wb') as file:
+        	file.write(compress_data);
 
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(u'temptool_database_param_data')
@@ -116,7 +120,7 @@ class File():
 
     def convert(self, file):
         type(file)
-        data = Dataset(file, mode='r')  # read the data
+        data = Dataset(file, mode='r')
 
         match_descript = None
         time = None
