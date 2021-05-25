@@ -1,14 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class LoadFile : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void TaskOnClick()
+    string path;
+    public void OpenExplorer()
     {
-        Debug.Log("You have clicked the button!");
+       // path = EditorUtility.OpenFilePanel("Overwrite with nc", "", "nc");
+        //GetFile();
+    }
+
+    void GetFile()
+    {
+        if (path != null)
+        {
+            UploadFile();
+        }
+    }
+
+    void UploadFile()
+    {
 
     }
 }
