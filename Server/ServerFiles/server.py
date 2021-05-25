@@ -29,7 +29,7 @@ def allowed_file(filename):
 def get_generic_data(doc):
     field = json.loads('{}')
     field.update({u'name': doc.to_dict().get(u'name')})
-    field.update({u'source_id': doc.to_dict().get(u'source_id')})
+    field.update({u'id': doc.to_dict().get(u'source_id')})
     field.update({u'size': doc.to_dict().get(u'size')})
     field.update({u'upload_date': doc.to_dict().get(u'upload_date')})
     field.update({u'last_used_date': doc.to_dict().get(u'last_used_date')})
@@ -74,7 +74,7 @@ def get_files():
     for doc in documents:
         fields.append(get_generic_data(doc))
 
-    resp = jsonify({'message': 'OK', 'result': fields})
+    resp = jsonify(fields)
     resp.status_code = 200
     return resp
 
@@ -116,7 +116,7 @@ def upload_file():
 
         db.collection(u'files').document(unique_id).set(uploaded_file.to_dict(db))
 
-        resp = jsonify({'message': 'File successfully uploaded', "id": unique_id})
+        resp = jsonify({"id": unique_id})
         resp.status_code = 201
         return resp
 
@@ -167,7 +167,7 @@ def get_specific_data(fileid):
                       for document in doc.collection(u'parameters').stream()]
 
         field.update({u'parameters': parameters})
-        resp = jsonify({'message': 'OK', 'result': field})
+        resp = jsonify(field)
         resp.status_code = 200
         return resp
     else:
@@ -205,7 +205,7 @@ def get_data(fileid):
     if db.collection(u'files').document(fileid).get().exists:
         doc = db.collection(u'orig_files').document(fileid)
         data = doc.get().to_dict().get(u'data')
-        resp = jsonify({'message': 'OK', 'result': data})
+        resp = jsonify(data)
         resp.status_code = 200
         return resp
 
