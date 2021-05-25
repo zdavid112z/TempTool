@@ -37,7 +37,12 @@ namespace CloudAPI
         public IEnumerator PostFile(string filePath,
             Action<long> onSuccess, Action<ErrorDetails> onError)
         {
-            throw new NotImplementedException();
+            return WebRequest(
+                RequestType.kPOST,
+                $"{baseURI}/files",
+                ConvertOnSuccess(onSuccess),
+                onError,
+                new FileRequestBody(filePath));
         }
 
         public IEnumerator GetFileOriginal(string fileId, 
@@ -45,11 +50,9 @@ namespace CloudAPI
         {
             return WebRequest(
                 RequestType.kGET,
-                $"{baseURI}/files/{fileId}",
+                $"{baseURI}/files/original/{fileId}",
                 onSuccess,
-                onError,
-                null,
-                new (string, string)[] { ("original", "true") });
+                onError);
         }
 
         public IEnumerator GetFileDetailed(string fileId, 
@@ -59,9 +62,7 @@ namespace CloudAPI
                 RequestType.kGET,
                 $"{baseURI}/files/{fileId}",
                 ConvertOnSuccess(onSuccess),
-                onError,
-                null,
-                new (string, string)[] { ("original", "false") });
+                onError);
         }
 
         public IEnumerator DeleteFile(string fileId, 
@@ -138,8 +139,16 @@ namespace CloudAPI
         {
             return (result, responseCode) =>
             {
-                onSuccess(JsonUtility.FromJson<T>(
-                    Encoding.UTF8.GetString(result)), responseCode);
+                string str = Encoding.UTF8.GetString(result);
+                if (typeof(T).IsArray)
+                {
+                    Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>("{\"obj\":" + str + "}");
+                    onSuccess(wrapper.obj, responseCode);
+                }
+                else
+                {
+                    onSuccess(JsonUtility.FromJson<T>(str), responseCode);
+                }
             };
         }
 
@@ -166,12 +175,14 @@ namespace CloudAPI
         {
             if (queryParams != null)
             {
-                WebClient client = new WebClient();
+                UriBuilder builder = new UriBuilder(uri);
+                bool first = true;
                 foreach (var (Name, Value) in queryParams)
                 {
-                    client.QueryString.Add(Name, Value);
+                    uri += first ? "?" : "&";
+                    uri += Name + "=" + Value;
+                    first = false;
                 }
-                uri = client.DownloadString(uri);
             }
 
             UnityWebRequest req = new UnityWebRequest(uri, method);

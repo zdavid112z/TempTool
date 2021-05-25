@@ -4,6 +4,12 @@ using UnityEngine.Assertions;
 namespace CloudAPI
 {
     [Serializable]
+    public class Wrapper<T>
+    {
+        public T obj;
+    }
+
+    [Serializable]
     public class FileInfo
     {
         public string id;
@@ -13,13 +19,6 @@ namespace CloudAPI
         public int last_used_date;
         public string uploaded_by;
         public bool is_permanent;
-    }
-
-    [Serializable]
-    public class FileUploadData
-    {
-        public string filename;
-        public string data;
     }
 
     [Serializable]
