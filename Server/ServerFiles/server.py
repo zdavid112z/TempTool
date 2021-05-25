@@ -79,6 +79,10 @@ def get_files():
     return resp
 
 
+@app.route('/')
+def form():
+    return render_template('form.html')
+
 @app.route('/api/files', methods=['POST'])
 @jwt_required()
 def upload_file():
