@@ -2630,10 +2630,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1058.0,
-            "y": -75.99998474121094,
-            "width": 207.99998474121095,
-            "height": 436.9999694824219
+            "x": -1068.9996337890625,
+            "y": -21.999980926513673,
+            "width": 208.0,
+            "height": 437.0
         }
     },
     "m_Slots": [
@@ -2756,7 +2756,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Y",
     "m_StageCapability": 3,
-    "m_Value": 360.0,
+    "m_Value": 180.0,
     "m_DefaultValue": 0.0,
     "m_Labels": [
         "Y"
@@ -4767,39 +4767,39 @@
     "m_Value": {
         "serializedVersion": "2",
         "key0": {
-            "r": 0.01981973648071289,
-            "g": 0.0,
+            "r": 0.7882353067398071,
+            "g": 0.8509804010391235,
             "b": 1.0,
             "a": 1.0
         },
         "key1": {
-            "r": 1.0,
-            "g": 0.0,
-            "b": 0.0,
+            "r": 0.7843137383460999,
+            "g": 0.8470588326454163,
+            "b": 1.0,
             "a": 1.0
         },
         "key2": {
-            "r": 0.0,
-            "g": 0.0,
-            "b": 0.0,
+            "r": 0.9019607901573181,
+            "g": 0.9215686321258545,
+            "b": 1.0,
             "a": 0.0
         },
         "key3": {
-            "r": 0.0,
-            "g": 0.0,
-            "b": 0.0,
+            "r": 1.0,
+            "g": 0.9215686321258545,
+            "b": 0.8627451062202454,
             "a": 0.0
         },
         "key4": {
-            "r": 0.0,
-            "g": 0.0,
-            "b": 0.0,
+            "r": 1.0,
+            "g": 0.7333333492279053,
+            "b": 0.4745098054409027,
             "a": 0.0
         },
         "key5": {
-            "r": 0.0,
-            "g": 0.0,
-            "b": 0.0,
+            "r": 1.0,
+            "g": 0.0941176488995552,
+            "b": 0.03921568766236305,
             "a": 0.0
         },
         "key6": {
@@ -4815,11 +4815,11 @@
             "a": 0.0
         },
         "ctime0": 0,
-        "ctime1": 65535,
-        "ctime2": 0,
-        "ctime3": 0,
-        "ctime4": 0,
-        "ctime5": 0,
+        "ctime1": 13107,
+        "ctime2": 26214,
+        "ctime3": 39321,
+        "ctime4": 52428,
+        "ctime5": 65535,
         "ctime6": 0,
         "ctime7": 0,
         "atime0": 0,
@@ -4831,7 +4831,7 @@
         "atime6": 0,
         "atime7": 0,
         "m_Mode": 0,
-        "m_NumColorKeys": 2,
+        "m_NumColorKeys": 6,
         "m_NumAlphaKeys": 2
     }
 }
@@ -5341,7 +5341,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
-    "m_Value": 0.0,
+    "m_Value": -180.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -5511,7 +5511,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
-    "m_Value": -180.0,
+    "m_Value": -90.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -5596,7 +5596,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Y",
     "m_StageCapability": 3,
-    "m_Value": 180.0,
+    "m_Value": 90.0,
     "m_DefaultValue": 0.0,
     "m_Labels": [
         "Y"
