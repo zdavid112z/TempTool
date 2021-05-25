@@ -22,5 +22,23 @@ spec:
                 name: firestore-key
                 key: FIRESTORE_KEY
                 optional: false
+          - name: JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jwt-key
+                key: JWT_SECRET_KEY
+                optional: false
+          - name: MJ_APIKEY_PRIVATE
+            valueFrom:
+              secretKeyRef:
+                name: mj-apikey-private
+                key: MJ_APIKEY_PRIVATE
+                optional: false
+          - name: MJ_APIKEY_PUBLIC
+            valueFrom:
+              secretKeyRef:
+                name: mj-apikey-public
+                key: MJ_APIKEY_PUBLIC
+                optional: false
         ports:
         - containerPort: 80
