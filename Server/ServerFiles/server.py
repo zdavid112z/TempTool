@@ -2,16 +2,25 @@ import json
 import os
 import time
 import uuid
+import base64
+import zlib
+import array
+import numpy as np
 
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from google.cloud import firestore
 from google.cloud import storage
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, make_response
 from file_struct import File
+from login import login_user
+from  werkzeug.security import check_password_hash, generate_password_hash
 import gcsfs
 
 ALLOWED_EXTENSIONS = {'nc'}
 app = Flask(__name__)
 
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+jwt = JWTManager(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -50,9 +59,15 @@ def file_already_exists(filename):
 
     return False
 
+@app.route('/')
+def form():
+    return render_template('form.html')
+
 
 @app.route('/api/files', methods=['GET'])
+@jwt_required()
 def get_files():
+    print(get_jwt_identity())
     documents = db.collection(u'files').stream()
 
     fields = []
@@ -63,9 +78,12 @@ def get_files():
     resp.status_code = 200
     return resp
 
-
 @app.route('/api/files', methods=['POST'])
+@jwt_required()
 def upload_file():
+    current_user = get_jwt_identity()
+    is_admin = db.collection(u'admins').document(str(current_user)).get().exists
+
     if 'file' not in request.files:
         resp = jsonify({'message': 'No file part in the request'})
         resp.status_code = 400
@@ -88,7 +106,7 @@ def upload_file():
 
         file.save('tmp.nc')
         uploaded_file = File(file.filename, size, time.time(), time.time(),
-                             None, False, unique_id)
+                             None, is_admin, unique_id)
         uploaded_file.convert('tmp.nc');
         os.remove('tmp.nc')
 
@@ -107,8 +125,12 @@ def upload_file():
 
 
 @app.route('/api/files/<fileid>', methods=['DELETE'])
+@jwt_required()
 def delete_specific_file(fileid):
     if db.collection(u'files').document(fileid).get().exists:
+
+        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'admins').document(str(get_jwt_identity())).get().exists: 
+            return make_response("Unauthorized", 401);
         for doc in db.collection(u'files').document(fileid).collection('parameters').stream():
             db.collection('param_data').document(fileid + '_' + doc.id).delete()
 
@@ -133,6 +155,7 @@ def delete_specific_file(fileid):
 
 
 @app.route('/api/files/<fileid>', methods=['GET'])
+@jwt_required()
 def get_specific_data(fileid):
     if db.collection(u'files').document(fileid).get().exists:
         doc = db.collection(u'files').document(fileid)
@@ -153,6 +176,7 @@ def get_specific_data(fileid):
 
 
 @app.route('/api/files/<fileid>/<parameter>', methods=['GET'])
+@jwt_required()
 def get_parameter(fileid, parameter):
     if db.collection(u'files').document(fileid).collection(u'parameters').document(parameter).get().exists:
         doc = db.collection(u'files').document(fileid)
@@ -161,9 +185,12 @@ def get_parameter(fileid, parameter):
         gcs_file_system = gcsfs.GCSFileSystem()
         gcs_json_path = "gs://temptool_database_param_data/" + "param_" + str(fileid) + "_" + str(parameter) + ".json"
         with gcs_file_system.open(gcs_json_path) as file:
-            field = json.load(file)
+            field = file.read()
 
-        resp = jsonify({'message': 'OK', 'result': field})
+        field = base64.b64decode(zlib.decompress(field))
+        field = np.frombuffer(field, np.double)
+        field = array.array('f', field)
+        resp = jsonify({'message': 'OK', 'result': (np.array(field)).tolist()})
         resp.status_code = 200
         return resp
     
@@ -173,6 +200,7 @@ def get_parameter(fileid, parameter):
 
 
 @app.route('/api/files/original/<fileid>', methods=['GET'])
+@jwt_required()
 def get_data(fileid):
     if db.collection(u'files').document(fileid).get().exists:
         doc = db.collection(u'orig_files').document(fileid)
@@ -188,30 +216,87 @@ def get_data(fileid):
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    auth = request.form
+
+    if not auth or not auth.get('email'):
+        return make_response('Could not verify', 
+                401,
+                {'WWW-Authenticate' : 'Basic realm ="Login required !!"'}
+        )
+
+    if not auth.get('login_code'):
+        response = login_user(auth.get('email'), db)
+        return make_response('Mailjet response', response.status_code)
+
+    user = db.collection(u'users').document(auth.get('email'))
+
+    # returns 401 if email is wrong
+    if not (user.get()).exists:
+        return make_response(
+            'Could not verify',
+            401,
+            {'WWW-Authenticate' : 'Basic realm ="User does not exist !!"'}
+        )
+
+    print(auth.get('login_code'));
+    if check_password_hash((user.get().to_dict().get(u'login_code')), auth.get('login_code')):
+        token = create_access_token(identity=auth.get('email'))
+        return make_response(jsonify({'token' : token}, {"user_id" : auth.get('email')}), 201)
+    # returns 403 if login code is wrong
+    return make_response(
+        'Could not verify',
+        403,
+        {'WWW-Authenticate' : 'Basic realm ="Wrong Password !!"'}
+    )
 
 
 @app.route('/api/admins', methods=['GET'])
 def get_admins():
-    resp = jsonify({'message': 'OK'})
+    documents = db.collection(u'admins').stream()
+
+    fields = []
+    for doc in documents:
+        fields.append(doc.to_dict())
+
+    resp = jsonify({'message': 'OK', 'result': fields})
     resp.status_code = 200
     return resp
-
 
 @app.route('/api/admins', methods=['POST'])
+@jwt_required()
 def add_admin():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    current_user = get_jwt_identity()
+
+    if db.collection(u'admins').document(str(current_user)).get().exists:
+
+        new_admin = request.form.get(u'admin')
+        if db.collection(u'admins').document(str(new_admin)).get().exists:
+            return make_response("Conflict", 403)
+
+        db.collection(u'admins').document(str(new_admin)).set({u'name' : str(new_admin)})
+        resp = jsonify({'message': 'OK'})
+        resp.status_code = 200
+        return resp
+
+    return make_response("Unauthorized", 401);
 
 
 @app.route('/api/admins', methods=['DELETE'])
+@jwt_required()
 def delete_admin():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    current_user = get_jwt_identity()
+    if db.collection(u'admins').document(str(current_user)).get().exists:
+
+        new_admin = request.form.get(u'admin')
+        if db.collection(u'admins').document(str(new_admin)).get().exists:
+            db.collection(u'admins').document(str(new_admin)).delete()
+            resp = jsonify({'message': 'OK'})
+            resp.status_code = 200
+            return resp
+
+        return make_response("Not Found!", 404)
+
+    return make_response("Unauthorized", 401);
 
 
 if __name__ == '__main__':
