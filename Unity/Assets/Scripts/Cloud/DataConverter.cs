@@ -12,11 +12,13 @@ namespace CloudAPI
 
             float[] buffer= new float[count];
             Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
-            return new FileParameterDataBin()
+            var result = new FileParameterDataBin()
             {
                 data = buffer,
                 info = info
             };
+            result.UpdateMinMax();
+            return result;
         }
     }
 

@@ -762,6 +762,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minField: {fileID: 1389030163}
   maxField: {fileID: 735053948}
+  textureLoader: {fileID: 992321361}
 --- !u!1 &161726800
 GameObject:
   m_ObjectHideFlags: 0
@@ -3246,6 +3247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f8f9baf8cd59da419a7f2100913847d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textureLoader: {fileID: 992321361}
 --- !u!1 &754085270
 GameObject:
   m_ObjectHideFlags: 0
@@ -3696,8 +3698,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 62298919}
+  m_Children: []
   m_Father: {fileID: 1204091724}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5758,7 +5759,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Content: {fileID: 62298919}
+  m_Content: {fileID: 0}
   m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
@@ -6431,6 +6432,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65d02524de8327c4daa65633e3354ae8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textureLoader: {fileID: 992321361}
 --- !u!1 &1397507811
 GameObject:
   m_ObjectHideFlags: 0
@@ -6524,7 +6526,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   container: {fileID: 1397507813}
   itemTemplate: {fileID: 249165915}
-  content: {fileID: 62298916}
+  content: {fileID: 0}
 --- !u!1 &1401828920
 GameObject:
   m_ObjectHideFlags: 0

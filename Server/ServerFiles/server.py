@@ -3,11 +3,14 @@ import os
 import time
 import uuid
 
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 from google.cloud import firestore
 from google.cloud import storage
 from flask import Flask, jsonify, render_template, request
 from file_struct import File
 import gcsfs
+
+db = firestore.Client()
 
 ALLOWED_EXTENSIONS = {'nc'}
 app = Flask(__name__)
@@ -50,6 +53,9 @@ def file_already_exists(filename):
 
     return False
 
+@app.route('/')
+def form():
+    return render_template('form.html')
 
 @app.route('/api/files', methods=['GET'])
 def get_files():
@@ -65,37 +71,44 @@ def get_files():
 
 
 @app.route('/api/files', methods=['POST'])
+# @jwt_required(optional=True)
 def upload_file():
-    if 'file' not in request.files:
+    verify_jwt_in_request(optional=True)
+    current_user = get_jwt_identity()
+    is_admin = db.collection(u'admins').document(str(current_user)).get().exists
+    # is_admin = False
+
+    filename = request.json['filename']
+    data_b64 = request.json['data']
+
+    if filename is None or data_b64 is None or filename == '':
         resp = jsonify({'message': 'No file part in the request'})
         resp.status_code = 400
         return resp
 
-    file = request.files['file']
-    if file.filename == '':
-        resp = jsonify({'message': 'No file selected for uploading'})
-        resp.status_code = 400
-        return resp
-
-    if file and allowed_file(file.filename):
-        file.seek(0, os.SEEK_END)
-        size = file.tell()
-        file.seek(0, os.SEEK_SET)
+    if allowed_file(filename):
+        data_comp = base64.b64decode(data_b64)
+        data = zlib.decompress(data_comp)
+        size = len(data)
 
         unique_id = str(uuid.uuid1())
 
         db.collection(u'orig_files').document(unique_id).set({u'data': u''})
 
-        file.save('tmp.nc')
-        uploaded_file = File(file.filename, size, time.time(), time.time(),
-                             None, False, unique_id)
-        uploaded_file.convert('tmp.nc');
-        os.remove('tmp.nc')
+        f = open('tmp.nc', "wb")
+        f.write(data)
+        f.close()
+        uploaded_file = File(filename, size, time.time(), time.time(),
+                             None, is_admin, unique_id)
+        uploaded_file.convert('tmp.nc')
 
         for param in uploaded_file.get_parameters():
             param.convert_parameters(db, unique_id)
 
         db.collection(u'files').document(unique_id).set(uploaded_file.to_dict(db))
+
+        uploaded_file.close()
+        os.remove('tmp.nc')
 
         resp = jsonify({"id": unique_id})
         resp.status_code = 201
@@ -108,7 +121,11 @@ def upload_file():
 
 @app.route('/api/files/<fileid>', methods=['DELETE'])
 def delete_specific_file(fileid):
+    verify_jwt_in_request(optional=True)
     if db.collection(u'files').document(fileid).get().exists:
+
+        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'admins').document(str(get_jwt_identity())).get().exists: 
+            return make_response("Unauthorized", 401)
         for doc in db.collection(u'files').document(fileid).collection('parameters').stream():
             db.collection('param_data').document(fileid + '_' + doc.id).delete()
 
@@ -119,7 +136,7 @@ def delete_specific_file(fileid):
             blob.delete()
 
         doc_param = db.collection(u'files').document(fileid).collection('parameters')
-        delete_collection(doc_param, len(list(doc_param.get())))
+        delete_collection(doc_param, max(1, len(list(doc_param.get()))))
         db.collection(u'orig_files').document(fileid).delete()
         db.collection(u'files').document(fileid).delete()
 
@@ -163,7 +180,7 @@ def get_parameter(fileid, parameter):
         with gcs_file_system.open(gcs_json_path) as file:
             field = json.load(file)
 
-        resp = jsonify({'message': 'OK', 'result': field})
+        resp = jsonify({ "data" : field.decode("utf-8") })
         resp.status_code = 200
         return resp
     
@@ -188,9 +205,38 @@ def get_data(fileid):
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    auth = request.form
+
+    if not auth or not auth.get('email'):
+        return make_response('Could not verify', 
+                401,
+                {'WWW-Authenticate' : 'Basic realm ="Login required !!"'}
+        )
+
+    if not auth.get('login_code'):
+        response = login_user(auth.get('email'), db)
+        return make_response('Mailjet response', response.status_code)
+
+    user = db.collection(u'users').document(auth.get('email'))
+
+    # returns 401 if email is wrong
+    if not (user.get()).exists:
+        return make_response(
+            'Could not verify',
+            401,
+            {'WWW-Authenticate' : 'Basic realm ="User does not exist !!"'}
+        )
+
+    print(auth.get('login_code'))
+    if check_password_hash((user.get().to_dict().get(u'login_code')), auth.get('login_code')):
+        token = create_access_token(identity=auth.get('email'))
+        return make_response(jsonify({'token' : token}, {"user_id" : auth.get('email')}), 201)
+    # returns 403 if login code is wrong
+    return make_response(
+        'Could not verify',
+        403,
+        {'WWW-Authenticate' : 'Basic realm ="Wrong Password !!"'}
+    )
 
 
 @app.route('/api/admins', methods=['GET'])
@@ -202,18 +248,39 @@ def get_admins():
 
 @app.route('/api/admins', methods=['POST'])
 def add_admin():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    current_user = get_jwt_identity()
+
+    if db.collection(u'admins').document(str(current_user)).get().exists:
+
+        new_admin = request.form.get(u'admin')
+        if db.collection(u'admins').document(str(new_admin)).get().exists:
+            return make_response("Conflict", 403)
+
+        db.collection(u'admins').document(str(new_admin)).set({})
+        resp = jsonify({'message': 'OK', 'result': fields})
+        resp.status_code = 200
+        return resp
+
+    return make_response("Unauthorized", 401)
 
 
 @app.route('/api/admins', methods=['DELETE'])
 def delete_admin():
-    resp = jsonify({'message': 'OK'})
-    resp.status_code = 200
-    return resp
+    current_user = get_jwt_identity()
+    if db.collection(u'admins').document(str(current_user)).get().exists:
+
+        new_admin = request.form.get(u'admin')
+        if db.collection(u'admins').document(str(new_admin)).get().exists:
+            db.collection(u'admins').document(str(new_admin)).delete()
+            resp = jsonify({'message': 'OK', 'result': fields})
+            resp.status_code = 200
+            return resp
+
+        return make_response("Not Found!", 404)
+
+    return make_response("Unauthorized", 401)
 
 
-if __name__ == '__main__':
-    db = firestore.Client()
-    app.run(debug=True, port=8080)
+# if __name__ == '__main__':
+#     db = firestore.Client()
+#     app.run(debug=True, port=8080)

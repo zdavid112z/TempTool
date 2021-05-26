@@ -24,19 +24,22 @@ class Parameter:
         ref_param = db.collection(u'param_data').document(source_id + '_' + self.__name)
         doc = db.collection(u'files').document(source_id).collection(u'parameters').document(self.__name)
 
-        start_date = datetime(1900, 1, 1) + timedelta(hours=int(min(self.__times[:])))
-        end_date = datetime(1900, 1, 1) + timedelta(hours=int(max(self.__times[:])))
+        t = self.__times[:]
+        start_date = datetime(1900, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.min(t)))))
+        end_date = datetime(1900, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.max(t)))))
         data_to_upload = {
             u'name': self.__name,
             u'height': len(self.__latitudes),
             u'width': len(self.__longitudes),
+            u'num_dates': len(self.__times),
             u'element_byte_size': 4,
             u'description': self.__data.long_name,
-            u'unit': self.__data.units,
+            u'unit': self.__data.units if self.__data.units is not None else '',
             u'lat_max': float(max(self.__latitudes[:])),
             u'lat_min': float(min(self.__latitudes[:])),
-            u'long_max': float(max(self.__longitudes[:])),
-            u'long_min': float(min(self.__longitudes[:])),
+            u'lon_max': float(max(self.__longitudes[:])),
+            u'lon_min': float(min(self.__longitudes[:])),
+            u'missing_value': np.asscalar(self.__data.missing_value) if self.__data.missing_value is not None else float('-inf'),
             u'start_date': start_date.replace(tzinfo=timezone.utc).timestamp(),
             u'end_date': end_date.replace(tzinfo=timezone.utc).timestamp(),
             u'num_layers': 1,
@@ -47,10 +50,13 @@ class Parameter:
 
         doc.set(data_to_upload)
 
-        data_array = np.array(self.__data[:])
-        list_data = data_array.tolist()
+        # data_array = np.array(self.__data[:])
+        # list_data = base64.b64encode((np.array(data_array.tolist())).flatten())
+        # compress_data = zlib.compress(list_data)
+        data_to_write = base64.b64encode(zlib.compress(self.__data[:].astype(np.dtype('float32')).tobytes()))
         filename = "param_" + source_id + "_" + str(self.__name) + ".json"
-        json.dump(list_data, codecs.open(filename, 'w'), separators=(',', ':'), sort_keys=True, indent=4)
+        with open(filename, 'wb') as file:
+            file.write(data_to_write)
 
         storage_client = storage.Client()
         bucket = storage_client.get_bucket(u'temptool_database_param_data')
@@ -74,6 +80,10 @@ class File():
         self.__is_permanent = is_permanent
         self.__id = source_id
         self.__parameters = []
+        self.__data = None
+
+    def close(self):
+        self.__data.close()
 
     def get_name(self):
         return self.__name
@@ -116,7 +126,8 @@ class File():
 
     def convert(self, file):
         type(file)
-        data = Dataset(file, mode='r')  # read the data
+        self.__data = Dataset(file, mode='r')
+        data = self.__data
 
         match_descript = None
         time = None
@@ -143,11 +154,12 @@ class File():
             if hasattr(data.variables[variable], 'long_name'):
                 match_descript = re.search('time.*', data.variables[variable].long_name)
 
-            if match and match_descript:
+            if match or match_descript:
                 time = data.variables[variable]
                 var_time = variable
 
         if var_time and var_lat and var_long:
             for variable in data.variables.keys():
-                if var_time in data.variables[variable].dimensions and var_long in data.variables[variable].dimensions and var_lat in data.variables[variable].dimensions:
+                v = data.variables[variable]
+                if var_time in v.dimensions and var_long in v.dimensions and var_lat in v.dimensions and (v.dtype == np.dtype("float32") or v.dtype == np.dtype("float64")):
                     self.__parameters.append(Parameter(variable, longs, lats, time, data.variables[variable]))

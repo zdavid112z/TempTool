@@ -41,6 +41,7 @@ namespace CloudAPI
         public float lat_min;
         public float layer_max;
         public float layer_min;
+        public float missing_value;
     }
 
     [Serializable]
@@ -64,8 +65,23 @@ namespace CloudAPI
 
     public class FileParameterDataBin
     {
+        public float vmin, vmax;
         public FileParameterInfo info;
         public float[] data;
+
+        public void UpdateMinMax()
+        {
+            vmin = float.MaxValue;
+            vmax = float.MinValue;
+            foreach (float f in data)
+            {
+                if (f != info.missing_value)
+                {
+                    vmin = Math.Min(vmin, f);
+                    vmax = Math.Max(vmax, f);
+                }
+            }
+        }
 
         public float this[int t, int l, int y, int x]
         {
