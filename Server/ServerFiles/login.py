@@ -18,11 +18,7 @@ def login_user(recipient, db):
           'Text-part': 'Dear User,\n Welcome to Temptool! Your code is: ' + str(unique_code),
            'Recipients': [{ "Email": str(recipient)}]
             }
-  print("date ")
-  db.collection(u'users').document(recipient).set({u'login_code' : generate_password_hash(unique_code)});
-  print("ia baza")
+
+  db.collection(u'users').document(recipient).set({u'login_code' : generate_password_hash(str(unique_code))});
   result = mailjet.send.create(data=data)
-  print("trimite")
-  print (result.status_code)
-  # print (result.json())
   return result

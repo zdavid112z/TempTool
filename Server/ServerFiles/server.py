@@ -78,11 +78,6 @@ def get_files():
     resp.status_code = 200
     return resp
 
-
-@app.route('/')
-def form():
-    return render_template('form.html')
-
 @app.route('/api/files', methods=['POST'])
 @jwt_required()
 def upload_file():
@@ -205,6 +200,7 @@ def get_parameter(fileid, parameter):
 
 
 @app.route('/api/files/original/<fileid>', methods=['GET'])
+@jwt_required()
 def get_data(fileid):
     if db.collection(u'files').document(fileid).get().exists:
         doc = db.collection(u'orig_files').document(fileid)
@@ -260,7 +256,7 @@ def get_admins():
 
     fields = []
     for doc in documents:
-        fields.append(doc.get().to_dict())
+        fields.append(doc.to_dict())
 
     resp = jsonify({'message': 'OK', 'result': fields})
     resp.status_code = 200
@@ -277,8 +273,8 @@ def add_admin():
         if db.collection(u'admins').document(str(new_admin)).get().exists:
             return make_response("Conflict", 403)
 
-        db.collection(u'admins').document(str(new_admin)).set({})
-        resp = jsonify({'message': 'OK', 'result': fields})
+        db.collection(u'admins').document(str(new_admin)).set({u'name' : str(new_admin)})
+        resp = jsonify({'message': 'OK'})
         resp.status_code = 200
         return resp
 
@@ -294,7 +290,7 @@ def delete_admin():
         new_admin = request.form.get(u'admin')
         if db.collection(u'admins').document(str(new_admin)).get().exists:
             db.collection(u'admins').document(str(new_admin)).delete()
-            resp = jsonify({'message': 'OK', 'result': fields})
+            resp = jsonify({'message': 'OK'})
             resp.status_code = 200
             return resp
 
