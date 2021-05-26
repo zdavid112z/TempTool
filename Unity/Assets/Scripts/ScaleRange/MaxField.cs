@@ -7,6 +7,7 @@ public class MaxField : MonoBehaviour
 {
     private InputField minField;
     private InputField maxField;
+    public TextureLoader textureLoader;
 
     private void Start()
     {
@@ -20,14 +21,15 @@ public class MaxField : MonoBehaviour
         {
             if (maxField.text != null)
             {
-                int maxNumber, minNumber;
+                float maxNumber, minNumber;
 
-                if (int.TryParse(maxField.text, out maxNumber)) {
-                    if (int.TryParse(minField.text, out minNumber))
+                if (float.TryParse(maxField.text, out maxNumber))
+                {
+                    if (float.TryParse(minField.text, out minNumber))
                     {
                         if(minNumber <= maxNumber)
                         {
-                            
+                            textureLoader.SetRange(minNumber, maxNumber);
                         } else
                         {
                             maxField.text = null;

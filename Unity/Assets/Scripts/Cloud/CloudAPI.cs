@@ -85,7 +85,8 @@ namespace CloudAPI
                     FileParameterData data = 
                         JsonUtility.FromJson<FileParameterData>(
                             Encoding.UTF8.GetString(body));
-                    byte[] bytesData = Convert.FromBase64String(data.data);
+                    byte[] bytesDataCompressed = Convert.FromBase64String(data.data);
+                    byte[] bytesData = Compression.Inflate(bytesDataCompressed);
                     onSuccess(
                         DataConverter.FromBytes(bytesData, parameterData),
                         responseCode);

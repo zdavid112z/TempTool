@@ -8,12 +8,25 @@ public class TextureLoader : MonoBehaviour
     private CloudAPI.FileParameterDataBin currentData;
     private int currentLayer;
     private Material material;
+    public Action<float, float> onRangeChanged = null;
 
     public void SetDefaultMaterial()
     {
         material.SetFloat("Vector1_51fb8cd46af548f6af8aef823b6bffa7", 1); // Overlay Opacity
 
         currentData = null;
+    }
+
+    public void SetRange(float vmin, float vmax)
+    {
+        material.SetVector("Vector2_7d6901a117e948c9b13f530cee0ea746", new Vector4(vmin, vmax)); // LerpMinMax
+        onRangeChanged?.Invoke(vmin, vmax);
+    }
+
+    public Vector2 ResetRange()
+    {
+        SetRange(currentData.vmin, currentData.vmax);
+        return new Vector2(currentData.vmin, currentData.vmax);
     }
 
     public void SetMaterialData(CloudAPI.FileParameterDataBin data, int layer)
@@ -36,6 +49,8 @@ public class TextureLoader : MonoBehaviour
 
         currentLayer = layer;
         currentData = data;
+
+        ResetRange();
     }
 
     /// <summary>

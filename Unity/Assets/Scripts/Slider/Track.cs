@@ -33,7 +33,7 @@ public class Track : MonoBehaviour
         textureLoader.SetTimeProgress(slider.value);
         if (play)
         {
-            slider.value += 0.1f;
+            slider.value += Time.deltaTime * 20f;
             button.image.sprite = pauseSprite;
         } else
         {
