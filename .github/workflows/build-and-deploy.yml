@@ -10,6 +10,9 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   FIRESTORE_KEY: ${{ secrets.FIRESTORE_KEY }}
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+  MJ_APIKEY_PRIVATE: ${{ secrets.MJ_APIKEY_PRIVATE }}
+  MJ_APIKEY_PUBLIC: ${{ secrets.MJ_APIKEY_PUBLIC }}
   GKE_CLUSTER: cluster-1
   GKE_ZONE: us-central1-c
   DEPLOYMENT_NAME: temptool
@@ -84,8 +87,14 @@ jobs:
       - name: Deploy to GKE
         run: |-
           printenv FIRESTORE_KEY > FIRESTORE_KEY
+          printenv JWT_SECRET_KEY > JWT_SECRET_KEY
+          printenv MJ_APIKEY_PRIVATE > MJ_APIKEY_PRIVATE
+          printenv MJ_APIKEY_PUBLIC > MJ_APIKEY_PUBLIC
           ./kustomize edit set image gcr.io/temptool/temptool=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
           ./kustomize edit add secret firestore-key --from-file=FIRESTORE_KEY
+          ./kustomize edit add secret jwt-key --from-file=JWT_SECRET_KEY
+          ./kustomize edit add secret mj-apikey-private --from-file=MJ_APIKEY_PRIVATE
+          ./kustomize edit add secret mj-apikey-public --from-file=MJ_APIKEY_PUBLIC
           ./kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
           kubectl get services -o wide
