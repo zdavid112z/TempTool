@@ -15,8 +15,8 @@ namespace CloudAPI
         public string id;
         public string name;
         public int size;
-        public int upload_date;
-        public int last_used_date;
+        public long upload_date;
+        public long last_used_date;
         public string uploaded_by;
         public bool is_permanent;
     }
@@ -33,8 +33,8 @@ namespace CloudAPI
         public int height;
         public int num_layers;
         public int num_dates;
-        public int start_date;
-        public int end_date;
+        public long start_date;
+        public long end_date;
         public float lon_max;
         public float lon_min;
         public float lat_max;
@@ -49,8 +49,8 @@ namespace CloudAPI
     {
         public string id;
         public string filename;
-        public int upload_date;
-        public int last_used_date;
+        public long upload_date;
+        public long last_used_date;
         public string uploaded_by;
         public bool is_permanent;
         public int size;
@@ -119,7 +119,7 @@ namespace CloudAPI
     [Serializable]
     public class LoginResponse
     {
-        public int expiration_date;
+        public long expiration_date;
     }
 
     [Serializable]

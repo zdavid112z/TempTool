@@ -13,11 +13,12 @@ namespace CloudAPI
         public static ICloudAPI CreateDefaultAPI()
         {
             // return new DummyCloudAPI();
-            
-            string isProd = Environment.GetEnvironmentVariable("TEMPTOOL_PROD");
+
+            /* string isProd = Environment.GetEnvironmentVariable("TEMPTOOL_PROD");
             string baseURI = kLocalhostBaseURI;
             if (isProd == "1")
-                baseURI = kProdBaseURI;
+                baseURI = kProdBaseURI; */
+            string baseURI = kProdBaseURI;
             return new CloudAPI(baseURI);
             
         }

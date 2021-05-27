@@ -2,6 +2,8 @@ import codecs
 import json
 import os
 import re
+import base64
+import zlib
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -25,8 +27,8 @@ class Parameter:
         doc = db.collection(u'files').document(source_id).collection(u'parameters').document(self.__name)
 
         t = self.__times[:]
-        start_date = datetime(1900, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.min(t)))))
-        end_date = datetime(1900, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.max(t)))))
+        start_date = datetime(1970, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.min(t)))))
+        end_date = datetime(1970, 1, 1) + timedelta(hours=min(1756800, max(0, int(np.max(t)))))
         data_to_upload = {
             u'name': self.__name,
             u'height': len(self.__latitudes),

@@ -352,11 +352,13 @@ namespace CloudAPI
             for (int i = 0; i < count; i++)
                 result[i] = (float) random.NextDouble();
 
-            return new FileParameterDataBin()
+            var r = new FileParameterDataBin()
             {
                 data = result,
                 info = param
             };
+            r.UpdateMinMax();
+            return r;
         }
 
         private ErrorDetails GenProtocolErrorDetails(long code)

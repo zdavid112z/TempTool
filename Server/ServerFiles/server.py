@@ -6,9 +6,14 @@ import uuid
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 from google.cloud import firestore
 from google.cloud import storage
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, make_response
 from file_struct import File
+from login import login_user
 import gcsfs
+from  werkzeug.security import check_password_hash, generate_password_hash
+
+import base64
+import zlib
 
 db = firestore.Client()
 
@@ -73,10 +78,10 @@ def get_files():
 @app.route('/api/files', methods=['POST'])
 # @jwt_required(optional=True)
 def upload_file():
-    verify_jwt_in_request(optional=True)
-    current_user = get_jwt_identity()
-    is_admin = db.collection(u'admins').document(str(current_user)).get().exists
-    # is_admin = False
+    # verify_jwt_in_request(optional=True)
+    # current_user = get_jwt_identity()
+    # is_admin = db.collection(u'admins').document(str(current_user)).get().exists
+    is_admin = False
 
     filename = request.json['filename']
     data_b64 = request.json['data']
@@ -121,10 +126,11 @@ def upload_file():
 
 @app.route('/api/files/<fileid>', methods=['DELETE'])
 def delete_specific_file(fileid):
-    verify_jwt_in_request(optional=True)
+    # verify_jwt_in_request(optional=True)
     if db.collection(u'files').document(fileid).get().exists:
-
-        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'admins').document(str(get_jwt_identity())).get().exists: 
+        # username = str(get_jwt_identity())
+        username = ''
+        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'admins').document(username).get().exists: 
             return make_response("Unauthorized", 401)
         for doc in db.collection(u'files').document(fileid).collection('parameters').stream():
             db.collection('param_data').document(fileid + '_' + doc.id).delete()
@@ -178,9 +184,10 @@ def get_parameter(fileid, parameter):
         gcs_file_system = gcsfs.GCSFileSystem()
         gcs_json_path = "gs://temptool_database_param_data/" + "param_" + str(fileid) + "_" + str(parameter) + ".json"
         with gcs_file_system.open(gcs_json_path) as file:
-            field = json.load(file)
+            data = file.read()
+            # field = json.load(file)
 
-        resp = jsonify({ "data" : field.decode("utf-8") })
+        resp = jsonify({ "data" : data.decode("utf-8") })
         resp.status_code = 200
         return resp
     

@@ -4,6 +4,9 @@ USER root
 ENV TEMPTOOL_PROD 1
 ENV GOOGLE_APPLICATION_CREDENTIALS "/www/backend/firestore_key.json"
 ENV GCLOUD_PROJECT "temptool"
+ENV FLASK_APP "server.py"
+ENV FLASK_ENV "development"
+ENV FLASK_DEBUG "0"
 
 COPY build/WebGL/WebGL /www/data
 COPY Server /www/backend
