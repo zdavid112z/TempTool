@@ -8,6 +8,11 @@ public class Submiter : MonoBehaviour
 {
     public GameObject inputField;
     private InputField emailField;
+    private string lastEmail = "";
+    public Color okColor = Color.white;
+    public Color waitingColor = new Color(0.7f, 0.7f, 0.7f);
+    public Color wrongColor = new Color(1.0f, 0.8f, 0.8f);
+    public Image image;
 
     private const string MatchEmailPattern =
             @"^(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
@@ -24,20 +29,40 @@ public class Submiter : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-         emailField = GameObject.Find("EmailField").GetComponent<InputField>();
-
+        emailField = GameObject.Find("EmailField").GetComponent<InputField>();
+        image = GetComponent<Image>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Return))
+        if (emailField.text != lastEmail)
         {
+            image.color = okColor;
+        }
+        if (Input.GetKeyUp(KeyCode.Return) && emailField.text != lastEmail)
+        {
+            lastEmail = emailField.text;
             if (IsEmail(emailField.text))
             {
-                inputField.SetActive(true);
+                image.color = waitingColor;
+                StartCoroutine(CloudAPI.CloudAPIManager.GetInstance().cloud.PostLogin(
+                    new CloudAPI.LoginRequestData()
+                    {
+                        email = emailField.text
+                    },
+                    (CloudAPI.LoginResponse respose, long code) =>
+                    {
+                        inputField.SetActive(true);
+                        image.color = okColor;
+                    }, (CloudAPI.ErrorDetails error) =>
+                    {
+                        image.color = wrongColor;
+                        Debug.LogError(error);
+                    }));
             } else
             {
+                image.color = wrongColor;
                 Debug.Log("incorect email");
             }
         }

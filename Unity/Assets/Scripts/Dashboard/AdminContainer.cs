@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AdminContainer : MonoBehaviour
 {
-    List<string> users = new List<string>(new string [] {"user1@yahoo.com", "strawberry_love123@yahoo.com", "cat_lover65@gmail.com", "weatherman@magicschoolbus.org"});
+    List<CloudAPI.AdminData> users = new List<CloudAPI.AdminData>();
     public Image container;
 
     public GameObject itemTemplate;
@@ -13,7 +14,6 @@ public class AdminContainer : MonoBehaviour
 
 
     List<GameObject> items = new List<GameObject>();
-    int count = 0;
 
     private CloudAPI.ICloudAPI cloud;
 
@@ -23,6 +23,7 @@ public class AdminContainer : MonoBehaviour
         {
             Destroy(items[i]);
         }
+        items.Clear();
     }
 
     private void RenderList()
@@ -33,40 +34,66 @@ public class AdminContainer : MonoBehaviour
             copy.transform.SetParent(content.gameObject.transform, false);
 
             copy.transform.localPosition = Vector3.zero;
-            copy.GetComponentInChildren<Text>().text = users[i];
-            copy.name = users[i];
+            copy.GetComponentInChildren<Text>().text = users[i].name;
+            copy.name = users[i].name;
             items.Add(copy);
         }
     }
 
     void Start()
     {
-        
+        cloud = CloudAPI.CloudAPIManager.GetInstance().cloud;
+        StartCoroutine(cloud.GetAdmins(
+            (CloudAPI.AdminData[] a, long responseCode) =>
+            {
+                users = a.ToList();
+                DestroyItems();
+                RenderList();
+            }, (CloudAPI.ErrorDetails error) =>
+            {
+                Debug.LogError(error);
+            }));
     }
 
     void Update()//HandleSearchValue()
     {
-        if (count != users.Count)
-        {
-            DestroyItems();
-            RenderList();
-            count = users.Count;
-        }
+        
     }
 
     public void DeleteUser(string id)
     {
-        string user = users.Find(x => x == id);
+        var user = users.Find(x => x.name == id);
         users.Remove(user);
         DestroyItems();
         RenderList();
+
+        StartCoroutine(cloud.DeleteAdmin(user,
+            (long responseCode) =>
+            {
+                Debug.Log("Admin deleted!");
+            }, (CloudAPI.ErrorDetails error) =>
+            {
+                Debug.LogError(error);
+            }));
     }
 
     public void AddUser(string id)
     {
-        if (users.Find(x => x == id) == null)
+        if (users.Find(x => x.name == id) == null)
         {
-            users.Add(id);
+            var user = new CloudAPI.AdminData()
+            {
+                name = id
+            };
+            users.Add(user);
+            StartCoroutine(cloud.PostAdmin(user,
+                (long responseCode) =>
+                {
+                    Debug.Log("Admin added!");
+                }, (CloudAPI.ErrorDetails error) =>
+                {
+                    Debug.LogError(error);
+                }));
         } else
         {
             Debug.Log("already registred");

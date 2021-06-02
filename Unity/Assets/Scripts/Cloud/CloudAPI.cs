@@ -99,8 +99,8 @@ namespace CloudAPI
         {
             return WebRequest(
                 RequestType.kPOST,
-                $"{baseURI}/login",
-                ConvertOnSuccess(onSuccess),
+                $"{baseURI}/auth",
+                ConvertOnSuccess(PeekLoginResponse(onSuccess)),
                 onError,
                 JSONRequestBody.FromObject(request));
         }
@@ -136,6 +136,18 @@ namespace CloudAPI
                 JSONRequestBody.FromObject(admin));
         }
 
+        private Action<LoginResponse, long> PeekLoginResponse(Action<LoginResponse, long> onSuccess)
+        {
+            return (result, responseCode) =>
+            {
+                if (result != null && result.token != null && result.token.Length != 0)
+                {
+                    session.jwt = result.token;
+                }
+                onSuccess(result, responseCode);
+            };
+        }
+
         private Action<byte[], long> ConvertOnSuccess<T>(Action<T, long> onSuccess)
         {
             return (result, responseCode) =>
@@ -143,12 +155,28 @@ namespace CloudAPI
                 string str = Encoding.UTF8.GetString(result);
                 if (typeof(T).IsArray)
                 {
-                    Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>("{\"obj\":" + str + "}");
+                    Wrapper<T> wrapper = default;
+                    try
+                    {
+                        wrapper = JsonUtility.FromJson<Wrapper<T>>("{\"obj\":" + str + "}"); ;
+                    } catch (Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
                     onSuccess(wrapper.obj, responseCode);
                 }
                 else
                 {
-                    onSuccess(JsonUtility.FromJson<T>(str), responseCode);
+                    T obj = default;
+                    try
+                    {
+                        obj = JsonUtility.FromJson<T>(str);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
+                    onSuccess(obj, responseCode);
                 }
             };
         }

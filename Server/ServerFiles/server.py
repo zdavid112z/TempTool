@@ -12,6 +12,7 @@ from login import login_user
 import gcsfs
 from  werkzeug.security import check_password_hash, generate_password_hash
 
+import datetime
 import base64
 import zlib
 
@@ -20,6 +21,10 @@ db = firestore.Client()
 ALLOWED_EXTENSIONS = {'nc'}
 app = Flask(__name__)
 
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "json", "query_string"]
+app.config["JWT_COOKIE_SECURE"] = False
+jwt = JWTManager(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -80,7 +85,7 @@ def get_files():
 def upload_file():
     # verify_jwt_in_request(optional=True)
     # current_user = get_jwt_identity()
-    # is_admin = db.collection(u'admins').document(str(current_user)).get().exists
+    # is_admin = db.collection(u'users').document(str(current_user)).get().exists
     is_admin = False
 
     filename = request.json['filename']
@@ -130,7 +135,7 @@ def delete_specific_file(fileid):
     if db.collection(u'files').document(fileid).get().exists:
         # username = str(get_jwt_identity())
         username = ''
-        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'admins').document(username).get().exists: 
+        if db.collection(u'files').document(fileid).get().to_dict().get(u'is_permanent') and not db.collection(u'users').document(username).get().exists: 
             return make_response("Unauthorized", 401)
         for doc in db.collection(u'files').document(fileid).collection('parameters').stream():
             db.collection('param_data').document(fileid + '_' + doc.id).delete()
@@ -210,21 +215,19 @@ def get_data(fileid):
     return resp
 
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/api/auth', methods=['POST'])
 def login():
-    auth = request.form
+    json = request.get_json(force=True)
+    email = json.get('email')
+    login_code = json.get('login_code')
 
-    if not auth or not auth.get('email'):
+    if not email:
         return make_response('Could not verify', 
                 401,
                 {'WWW-Authenticate' : 'Basic realm ="Login required !!"'}
         )
 
-    if not auth.get('login_code'):
-        response = login_user(auth.get('email'), db)
-        return make_response('Mailjet response', response.status_code)
-
-    user = db.collection(u'users').document(auth.get('email'))
+    user = db.collection(u'users').document(email)
 
     # returns 401 if email is wrong
     if not (user.get()).exists:
@@ -234,10 +237,18 @@ def login():
             {'WWW-Authenticate' : 'Basic realm ="User does not exist !!"'}
         )
 
-    print(auth.get('login_code'))
-    if check_password_hash((user.get().to_dict().get(u'login_code')), auth.get('login_code')):
-        token = create_access_token(identity=auth.get('email'))
-        return make_response(jsonify({'token' : token}, {"user_id" : auth.get('email')}), 201)
+    if not login_code or login_code == '':
+        response = login_user(email, db)
+        return make_response(jsonify({"reason": response.reason, "text": response.text}), response.status_code)
+
+    print(login_code)
+    # if check_password_hash((user.get().to_dict().get(u'login_code')), login_code):
+    if user.get().to_dict().get(u'login_code') == login_code:
+        token = create_access_token(identity=email, expires_delta=datetime.timedelta(hours=24))
+        user.update({
+            u'login_code': firestore.DELETE_FIELD
+        })
+        return make_response(jsonify({'token' : token, "user_id" : email}), 201)
     # returns 403 if login code is wrong
     return make_response(
         'Could not verify',
@@ -245,26 +256,31 @@ def login():
         {'WWW-Authenticate' : 'Basic realm ="Wrong Password !!"'}
     )
 
-
 @app.route('/api/admins', methods=['GET'])
 def get_admins():
-    resp = jsonify({'message': 'OK'})
+    documents = db.collection(u'users').stream()
+
+    fields = []
+    for doc in documents:
+        fields.append({"name": doc.id})
+
+    resp = jsonify(fields)
     resp.status_code = 200
     return resp
 
-
 @app.route('/api/admins', methods=['POST'])
+@jwt_required()
 def add_admin():
     current_user = get_jwt_identity()
 
-    if db.collection(u'admins').document(str(current_user)).get().exists:
+    if db.collection(u'users').document(str(current_user)).get().exists:
 
-        new_admin = request.form.get(u'admin')
-        if db.collection(u'admins').document(str(new_admin)).get().exists:
+        new_admin = request.json['name']
+        if db.collection(u'users').document(str(new_admin)).get().exists:
             return make_response("Conflict", 403)
 
-        db.collection(u'admins').document(str(new_admin)).set({})
-        resp = jsonify({'message': 'OK', 'result': fields})
+        db.collection(u'users').document(str(new_admin)).set({u'name' : str(new_admin)})
+        resp = jsonify({'message': 'OK'})
         resp.status_code = 200
         return resp
 
@@ -272,21 +288,21 @@ def add_admin():
 
 
 @app.route('/api/admins', methods=['DELETE'])
+@jwt_required()
 def delete_admin():
     current_user = get_jwt_identity()
-    if db.collection(u'admins').document(str(current_user)).get().exists:
+    if db.collection(u'users').document(str(current_user)).get().exists:
 
-        new_admin = request.form.get(u'admin')
-        if db.collection(u'admins').document(str(new_admin)).get().exists:
-            db.collection(u'admins').document(str(new_admin)).delete()
-            resp = jsonify({'message': 'OK', 'result': fields})
+        new_admin = request.json['name']
+        if db.collection(u'users').document(str(new_admin)).get().exists:
+            db.collection(u'users').document(str(new_admin)).delete()
+            resp = jsonify({'message': 'OK'})
             resp.status_code = 200
             return resp
 
         return make_response("Not Found!", 404)
 
     return make_response("Unauthorized", 401)
-
 
 # if __name__ == '__main__':
 #     db = firestore.Client()

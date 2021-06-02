@@ -19,8 +19,11 @@ namespace CloudAPI
             if (isProd == "1")
                 baseURI = kProdBaseURI; */
             string baseURI = kProdBaseURI;
+            if (Application.isEditor)
+            {
+                baseURI = kLocalhostBaseURI;
+            }
             return new CloudAPI(baseURI);
-            
         }
     }
 }

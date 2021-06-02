@@ -119,13 +119,14 @@ namespace CloudAPI
     [Serializable]
     public class LoginResponse
     {
-        public long expiration_date;
+        public string token;
+        public string user_id;
     }
 
     [Serializable]
     public class AdminData
     {
-        public string email;
+        public string name;
     }
 }
 

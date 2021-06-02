@@ -5354,6 +5354,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 1772061977}
+  okColor: {r: 1, g: 1, b: 1, a: 1}
+  waitingColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  wrongColor: {r: 1, g: 0.8, b: 0.8, a: 1}
 --- !u!1 &1125805116
 GameObject:
   m_ObjectHideFlags: 0
@@ -5837,7 +5840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Content: {fileID: 0}
+  m_Content: {fileID: 463091449}
   m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
@@ -8287,6 +8290,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputField: {fileID: 1095407128}
+  okColor: {r: 1, g: 1, b: 1, a: 1}
+  waitingColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  wrongColor: {r: 1, g: 0.8, b: 0.8, a: 1}
+  image: {fileID: 0}
 --- !u!1 &1772061977
 GameObject:
   m_ObjectHideFlags: 0
