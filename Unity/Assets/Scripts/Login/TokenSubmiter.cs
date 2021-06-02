@@ -18,6 +18,7 @@ public class TokenSubmiter : MonoBehaviour
     public Color wrongColor = new Color(1.0f, 0.8f, 0.8f);
     private Image image;
     private Submiter submiter;
+    private bool dirty = true;
 
     private bool IsValid(string token)
     {
@@ -49,10 +50,12 @@ public class TokenSubmiter : MonoBehaviour
         if (tokenField.text != lastToken)
         {
             image.color = okColor;
-        }
-        if (Input.GetKeyUp(KeyCode.Return) && tokenField.text != lastToken)
-        {
             lastToken = tokenField.text;
+            dirty = true;
+        }
+        if (Input.GetKeyUp(KeyCode.Return) && dirty)
+        {
+            dirty = false;
             if (IsValid(tokenField.text))
             {
                 image.color = waitingColor;

@@ -13,6 +13,7 @@ public class Submiter : MonoBehaviour
     public Color waitingColor = new Color(0.7f, 0.7f, 0.7f);
     public Color wrongColor = new Color(1.0f, 0.8f, 0.8f);
     public Image image;
+    private bool dirty = true;
 
     private const string MatchEmailPattern =
             @"^(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
@@ -39,10 +40,12 @@ public class Submiter : MonoBehaviour
         if (emailField.text != lastEmail)
         {
             image.color = okColor;
-        }
-        if (Input.GetKeyUp(KeyCode.Return) && emailField.text != lastEmail)
-        {
             lastEmail = emailField.text;
+            dirty = true;
+        }
+        if (Input.GetKeyUp(KeyCode.Return) && dirty)
+        {
+            dirty = false;
             if (IsEmail(emailField.text))
             {
                 image.color = waitingColor;
