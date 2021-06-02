@@ -25,8 +25,12 @@ public class TextureLoader : MonoBehaviour
 
     public Vector2 ResetRange()
     {
-        SetRange(currentData.vmin, currentData.vmax);
-        return new Vector2(currentData.vmin, currentData.vmax);
+        if (currentData != null)
+        {
+            SetRange(currentData.vmin, currentData.vmax);
+            return new Vector2(currentData.vmin, currentData.vmax);
+        }
+        return new Vector2(0, 100);
     }
 
     public void SetMaterialData(CloudAPI.FileParameterDataBin data, int layer)

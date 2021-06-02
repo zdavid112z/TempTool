@@ -14,6 +14,9 @@ public class SearchItem : MonoBehaviour
         StartCoroutine(CloudAPI.CloudAPIManager.GetInstance().cloud.GetFileDetailed(file.id,
             (CloudAPI.FileInfoDetailed details, long response) =>
             {
+                GameObject.Find("Filename Label").GetComponent<TextValueLabel>().SetValueText(file.name);
+                GameObject.Find("Filesize Label").GetComponent<TextValueLabel>().SetValueSize(details.size);
+                GameObject.Find("Uploaded At Label").GetComponent<TextValueLabel>().SetValueDate(details.upload_date);
                 paramDropdown.GetComponent<ParamDropdown>().File = details;
                 search.field.text = file.name;
                 search.Collapse();

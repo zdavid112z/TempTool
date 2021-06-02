@@ -1,19 +1,34 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CameraMovement : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private Transform target;
+    public EventSystem eventSystem;
     private float distanceToTarget = 165;
 
     private Vector3 previousPosition;
+    private bool dragging = false;
 
     public float zoomSpeed = 1f;
 
-    void Start()
+    void Start()    
     {
+    }
+
+    private bool IsOverUI()
+    {
+        PointerEventData eventData = new PointerEventData(null)
+        {
+            position = Input.mousePosition
+        };
+        List<RaycastResult> results = new List<RaycastResult>();
+        eventSystem.RaycastAll(eventData, results);
+        return results.Count != 0;
     }
 
     void Update()
@@ -21,8 +36,9 @@ public class CameraMovement : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             previousPosition = cam.ScreenToViewportPoint(Input.mousePosition);
+            dragging = !IsOverUI();
         }
-        else if (Input.GetMouseButton(0))
+        else if (Input.GetMouseButton(0) && dragging)
         {
             Vector3 newPosition = cam.ScreenToViewportPoint(Input.mousePosition);
             Vector3 direction = previousPosition - newPosition;
@@ -41,7 +57,7 @@ public class CameraMovement : MonoBehaviour
 
         }
 
-        if (Input.GetAxis("Mouse ScrollWheel") > 0)
+        if (Input.GetAxis("Mouse ScrollWheel") > 0 && !IsOverUI())
         {
             cam.fieldOfView -= zoomSpeed / 8;
             if (cam.fieldOfView < 20.0f)
@@ -49,7 +65,7 @@ public class CameraMovement : MonoBehaviour
                 cam.fieldOfView = 20.0f;
             }
         }
-        else if (Input.GetAxis("Mouse ScrollWheel") < 0)
+        else if (Input.GetAxis("Mouse ScrollWheel") < 0 && !IsOverUI())
         {
             cam.fieldOfView += zoomSpeed / 8;
             if (cam.fieldOfView > 60.0f)

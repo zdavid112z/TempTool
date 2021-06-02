@@ -51,6 +51,9 @@ public class ParamDropdown : MonoBehaviour
             return;
         }
         int paramIndex = index - 1;
+        var param = file.parameters[paramIndex];
+        GameObject.Find("Unit Label").GetComponent<TextValueLabel>().SetValueText(param.unit);
+        GameObject.Find("Description Label").GetComponent<TextValueLabel>().SetValueText(param.description);
         StartCoroutine(CloudAPI.CloudAPIManager.GetInstance().cloud.GetFileParameter(
             file.id, file.parameters[paramIndex],
             (CloudAPI.FileParameterDataBin data, long response) =>
