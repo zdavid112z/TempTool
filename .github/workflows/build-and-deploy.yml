@@ -86,10 +86,10 @@ jobs:
       # Deploy the Docker image to the GKE cluster
       - name: Deploy to GKE
         run: |-
-          printenv FIRESTORE_KEY > FIRESTORE_KEY
-          printenv JWT_SECRET_KEY > JWT_SECRET_KEY
-          printenv MJ_APIKEY_PRIVATE > MJ_APIKEY_PRIVATE
-          printenv MJ_APIKEY_PUBLIC > MJ_APIKEY_PUBLIC
+          printf "%s" "$(printenv FIRESTORE_KEY)" > "FIRESTORE_KEY"
+          printf "%s" "$(printenv JWT_SECRET_KEY)" > "JWT_SECRET_KEY"
+          printf "%s" "$(printenv MJ_APIKEY_PRIVATE)" > "MJ_APIKEY_PRIVATE"
+          printf "%s" "$(printenv MJ_APIKEY_PUBLIC)" > "MJ_APIKEY_PUBLIC"
           ./kustomize edit set image gcr.io/temptool/temptool=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
           ./kustomize edit add secret firestore-key --from-file=FIRESTORE_KEY
           ./kustomize edit add secret jwt-key --from-file=JWT_SECRET_KEY

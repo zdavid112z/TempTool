@@ -14,13 +14,13 @@ namespace CloudAPI
         {
             admins = new List<AdminData>
             {
-                new AdminData() { email = "admin1@gmail.com" },
-                new AdminData() { email = "admin2@gmail.com" },
-                new AdminData() { email = "admin3@gmail.com" },
-                new AdminData() { email = "admin4@gmail.com" },
-                new AdminData() { email = "bestadmin@gmail.com" },
-                new AdminData() { email = "master@temptool.org" },
-                new AdminData() { email = "myadmin@temptool.org" },
+                new AdminData() { name = "admin1@gmail.com" },
+                new AdminData() { name = "admin2@gmail.com" },
+                new AdminData() { name = "admin3@gmail.com" },
+                new AdminData() { name = "admin4@gmail.com" },
+                new AdminData() { name = "bestadmin@gmail.com" },
+                new AdminData() { name = "master@temptool.org" },
+                new AdminData() { name = "myadmin@temptool.org" },
             };
 
             files = new List<FileInfoDetailed>
@@ -177,7 +177,7 @@ namespace CloudAPI
                 yield break;
             }
 
-            int count = admins.RemoveAll((AdminData a) => { return a.email == admin.email; });
+            int count = admins.RemoveAll((AdminData a) => { return a.name == admin.name; });
 
             if (count != 0)
                 onSuccess(200);
@@ -352,11 +352,13 @@ namespace CloudAPI
             for (int i = 0; i < count; i++)
                 result[i] = (float) random.NextDouble();
 
-            return new FileParameterDataBin()
+            var r = new FileParameterDataBin()
             {
                 data = result,
                 info = param
             };
+            r.UpdateMinMax();
+            return r;
         }
 
         private ErrorDetails GenProtocolErrorDetails(long code)

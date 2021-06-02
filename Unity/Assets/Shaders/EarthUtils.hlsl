@@ -22,6 +22,10 @@ float map(float value, float low1, float high1, float low2, float high2) {
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1);
 }
 
+float map2(float value, float2 interval1, float2 interval2) {
+    return map(value, interval1.x, interval1.y, interval2.x, interval2.y);
+}
+
 void Map_float(float value, float2 fromMinMax, float2 toMinMax, out float result) {
     result = map(value, fromMinMax.x, fromMinMax.y, toMinMax.x, toMinMax.y);
 }
@@ -41,6 +45,22 @@ void MapClamp_float(float value, float2 fromMinMax, float2 toMinMax, out float r
     result = clamp(map(value, fromMinMax.x, fromMinMax.y, toMinMax.x, toMinMax.y), toMinMax.x, toMinMax.y);
 }
 
+float toRad(float deg) {
+    return deg * PI / 180.f;
+}
+
+float toDeg(float rad) {
+    return rad / PI * 180.f;
+}
+
+float2 toRad2(float2 deg) {
+    return deg * PI / 180.f;
+}
+
+float2 toDeg2(float2 rad) {
+    return rad / PI * 180.f;
+}
+
 void ToRad_float(float angle, out float result) {
     result = angle * PI / 180.f;
 }
@@ -49,10 +69,14 @@ void ToRad2_float(float2 angles, out float2 result) {
     result = angles * PI / 180.f;
 }
 
-void IsWrapping_float(float2 lonMinMax, float width, float epsilon, out bool isWrapping) {
+bool isLonWrapping(float2 lonMinMax, float width, float epsilon) {
     float segmentLength = (lonMinMax.y - lonMinMax.x) / (width - 1);
-    isWrapping = abs(lonMinMax.x) < epsilon
-        && abs(360 - lonMinMax.y - segmentLength) < epsilon;
+    float diff = 360 - (lonMinMax.y - lonMinMax.x);
+    return abs(segmentLength - diff) < epsilon;
+}
+
+void IsWrapping_float(float2 lonMinMax, float width, float epsilon, out bool isWrapping) {
+    isWrapping = isLonWrapping(lonMinMax, width, epsilon);
 }
 
 /**
@@ -60,6 +84,74 @@ void IsWrapping_float(float2 lonMinMax, float width, float epsilon, out bool isW
  */
 void XYZToLLH_float(float3 xyz, out float3 llh) {
     llh = xyzllhSimple(xyz);
+}
+
+float handleLonConversion(float2 lonMinMax, float lon) {
+    if (lonMinMax.y > 180.0) {
+        lon += 180.0;
+        if (lon > 360.0) {
+            lon -= 360.0;
+        }
+        return lon - 180;
+    }
+    return lon;
+}
+
+void HandleLonConversion_float(float2 lonMinMax, float lon, out float lonOut) {
+    lonOut = handleLonConversion(lonMinMax, lon);
+}
+
+float lonTo180_180(float lon) {
+    lon += PI;
+    if (lon > 2 * PI)
+        lon -= 2 * PI;
+    return lon - PI;
+}
+
+float lonTo0_360(float lon) {
+    if (lon < 0)
+        return lon + PI * 2;
+    return lon;
+}
+
+float LonToEquirectangular180(float lonRad, float2 lonMinMaxDeg, bool flipLon, bool isWrapping) {    
+    float2 limits = toRad2(float2(-180, 180));
+    float result;
+    if (isWrapping)
+        result = lonRad;
+    else result = map2(lonRad, toRad2(lonMinMaxDeg), limits);
+    if (flipLon)
+        result = -result;
+    return map(result, -PI, PI, 0, 1);
+}
+
+float LonToEquirectangular360(float lonRad, float2 lonMinMaxDeg, bool flipLon, bool isWrapping) {
+    float2 limits = toRad2(float2(0, 360));
+    float result;
+    if (isWrapping)
+        result = lonRad;
+    else result = map2(lonRad, toRad2(lonMinMaxDeg), limits);
+    if (flipLon)
+        result = 2 * PI - result;
+    return map(result, 0, 2 * PI, 0, 1);
+}
+
+float LatToEquirectangular(float latRad, float2 latMinMaxDeg, bool flipLat) {
+    float result = map2(latRad, toRad2(latMinMaxDeg), toRad2(float2(-90, 90)));
+    if (flipLat)
+        result = -result;
+    return map(result, -PI / 2, PI / 2, 0, 1);
+}
+
+void LLToEquirectangularCorrectedLon_float(float2 ll, float2 latMinMax, float2 lonMinMax, float width, bool flipLat, bool flipLon, out float2 llOut) {
+    bool isWrapping = isLonWrapping(lonMinMax, width, 0.1);
+    bool is360 = lonMinMax.y > 180;
+    float x;
+    if (is360)
+        x = LonToEquirectangular360(lonTo0_360(ll.y), lonMinMax, flipLon, isWrapping);
+    else x = LonToEquirectangular180(ll.y, lonMinMax, flipLon, isWrapping);
+    float y = LatToEquirectangular(ll.x, latMinMax, flipLat);
+    llOut = float2(x, y);
 }
 
 /**

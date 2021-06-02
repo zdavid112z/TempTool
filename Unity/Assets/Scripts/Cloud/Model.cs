@@ -4,22 +4,21 @@ using UnityEngine.Assertions;
 namespace CloudAPI
 {
     [Serializable]
+    public class Wrapper<T>
+    {
+        public T obj;
+    }
+
+    [Serializable]
     public class FileInfo
     {
         public string id;
         public string name;
         public int size;
-        public int upload_date;
-        public int last_used_date;
+        public long upload_date;
+        public long last_used_date;
         public string uploaded_by;
         public bool is_permanent;
-    }
-
-    [Serializable]
-    public class FileUploadData
-    {
-        public string filename;
-        public string data;
     }
 
     [Serializable]
@@ -34,14 +33,15 @@ namespace CloudAPI
         public int height;
         public int num_layers;
         public int num_dates;
-        public int start_date;
-        public int end_date;
+        public long start_date;
+        public long end_date;
         public float lon_max;
         public float lon_min;
         public float lat_max;
         public float lat_min;
         public float layer_max;
         public float layer_min;
+        public float missing_value;
     }
 
     [Serializable]
@@ -49,8 +49,8 @@ namespace CloudAPI
     {
         public string id;
         public string filename;
-        public int upload_date;
-        public int last_used_date;
+        public long upload_date;
+        public long last_used_date;
         public string uploaded_by;
         public bool is_permanent;
         public int size;
@@ -65,8 +65,23 @@ namespace CloudAPI
 
     public class FileParameterDataBin
     {
+        public float vmin, vmax;
         public FileParameterInfo info;
         public float[] data;
+
+        public void UpdateMinMax()
+        {
+            vmin = float.MaxValue;
+            vmax = float.MinValue;
+            foreach (float f in data)
+            {
+                if (f != info.missing_value)
+                {
+                    vmin = Math.Min(vmin, f);
+                    vmax = Math.Max(vmax, f);
+                }
+            }
+        }
 
         public float this[int t, int l, int y, int x]
         {
@@ -104,13 +119,14 @@ namespace CloudAPI
     [Serializable]
     public class LoginResponse
     {
-        public int expiration_date;
+        public string token;
+        public string user_id;
     }
 
     [Serializable]
     public class AdminData
     {
-        public string email;
+        public string name;
     }
 }
 

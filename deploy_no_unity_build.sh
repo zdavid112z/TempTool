@@ -31,15 +31,16 @@ check_env() {
     then
         echo "$1 env exists, writing its contents to file $1..."
         rm -rf $1
-        printenv $1 > $1 || echo "Failed to copy the contents of the $1 env variable into a file with the same name"
+        printf "%s" "$(printenv $1)" > "$1" || echo "Failed to copy the contents of the $1 env variable into a file with the same name"
+        # printenv -0 $1 > $1 || echo "Failed to copy the contents of the $1 env variable into a file with the same name"
     else
         echo "$1 env does not exist; file $1 must exist to not fail"
     fi
     test -f $1 || { echo "File $1 does not exist"; exit 1; }
 }
 
-check_env FIRESTORE_KEY
 check_env JWT_SECRET_KEY
+check_env FIRESTORE_KEY
 check_env MJ_APIKEY_PRIVATE
 check_env MJ_APIKEY_PUBLIC
 
@@ -53,7 +54,7 @@ chmod u+x ./kustomize || { echo "Failed make the kustomize file executable"; exi
 
 # Build and publish docker image
 echo "#### Building docker ####"
-docker build --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" . || { echo "Failed to build docker image"; exit 1; }
+docker build --no-cache --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" . || { echo "Failed to build docker image"; exit 1; }
 docker push "gcr.io/$PROJECT_ID/$IMAGE:$TAG" || { echo "Failed to push docker image"; exit 1; }
 
 # Deploy

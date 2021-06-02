@@ -37,7 +37,12 @@ namespace CloudAPI
         public IEnumerator PostFile(string filePath,
             Action<long> onSuccess, Action<ErrorDetails> onError)
         {
-            throw new NotImplementedException();
+            return WebRequest(
+                RequestType.kPOST,
+                $"{baseURI}/files",
+                ConvertOnSuccess(onSuccess),
+                onError,
+                new FileRequestBody(filePath));
         }
 
         public IEnumerator GetFileOriginal(string fileId, 
@@ -45,11 +50,9 @@ namespace CloudAPI
         {
             return WebRequest(
                 RequestType.kGET,
-                $"{baseURI}/files/{fileId}",
+                $"{baseURI}/files/original/{fileId}",
                 onSuccess,
-                onError,
-                null,
-                new (string, string)[] { ("original", "true") });
+                onError);
         }
 
         public IEnumerator GetFileDetailed(string fileId, 
@@ -59,9 +62,7 @@ namespace CloudAPI
                 RequestType.kGET,
                 $"{baseURI}/files/{fileId}",
                 ConvertOnSuccess(onSuccess),
-                onError,
-                null,
-                new (string, string)[] { ("original", "false") });
+                onError);
         }
 
         public IEnumerator DeleteFile(string fileId, 
@@ -84,7 +85,8 @@ namespace CloudAPI
                     FileParameterData data = 
                         JsonUtility.FromJson<FileParameterData>(
                             Encoding.UTF8.GetString(body));
-                    byte[] bytesData = Convert.FromBase64String(data.data);
+                    byte[] bytesDataCompressed = Convert.FromBase64String(data.data);
+                    byte[] bytesData = Compression.Inflate(bytesDataCompressed);
                     onSuccess(
                         DataConverter.FromBytes(bytesData, parameterData),
                         responseCode);
@@ -97,8 +99,8 @@ namespace CloudAPI
         {
             return WebRequest(
                 RequestType.kPOST,
-                $"{baseURI}/login",
-                ConvertOnSuccess(onSuccess),
+                $"{baseURI}/auth",
+                ConvertOnSuccess(PeekLoginResponse(onSuccess)),
                 onError,
                 JSONRequestBody.FromObject(request));
         }
@@ -134,12 +136,48 @@ namespace CloudAPI
                 JSONRequestBody.FromObject(admin));
         }
 
+        private Action<LoginResponse, long> PeekLoginResponse(Action<LoginResponse, long> onSuccess)
+        {
+            return (result, responseCode) =>
+            {
+                if (result != null && result.token != null && result.token.Length != 0)
+                {
+                    session.jwt = result.token;
+                }
+                onSuccess(result, responseCode);
+            };
+        }
+
         private Action<byte[], long> ConvertOnSuccess<T>(Action<T, long> onSuccess)
         {
             return (result, responseCode) =>
             {
-                onSuccess(JsonUtility.FromJson<T>(
-                    Encoding.UTF8.GetString(result)), responseCode);
+                string str = Encoding.UTF8.GetString(result);
+                if (typeof(T).IsArray)
+                {
+                    Wrapper<T> wrapper = default;
+                    try
+                    {
+                        wrapper = JsonUtility.FromJson<Wrapper<T>>("{\"obj\":" + str + "}"); ;
+                    } catch (Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
+                    onSuccess(wrapper.obj, responseCode);
+                }
+                else
+                {
+                    T obj = default;
+                    try
+                    {
+                        obj = JsonUtility.FromJson<T>(str);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
+                    onSuccess(obj, responseCode);
+                }
             };
         }
 
@@ -166,12 +204,14 @@ namespace CloudAPI
         {
             if (queryParams != null)
             {
-                WebClient client = new WebClient();
+                UriBuilder builder = new UriBuilder(uri);
+                bool first = true;
                 foreach (var (Name, Value) in queryParams)
                 {
-                    client.QueryString.Add(Name, Value);
+                    uri += first ? "?" : "&";
+                    uri += Name + "=" + Value;
+                    first = false;
                 }
-                uri = client.DownloadString(uri);
             }
 
             UnityWebRequest req = new UnityWebRequest(uri, method);

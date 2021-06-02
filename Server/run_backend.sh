@@ -1,12 +1,10 @@
 #!/bin/bash
 
-cd /www/backend
+cd /www/backend/ServerFiles
 
 while true; do
     # Run server
-    # python3 -m swagger_server
-    python3 ServerFiles/server.py
-    sleep 3
+    flask run --no-debugger --no-reload --port=8080
     echo "Backend crashed with exit code $?.  Respawning.." >&2
     sleep 1
 done

@@ -7,10 +7,21 @@ public class ResetFields : MonoBehaviour
 {
     public InputField minField;
     public InputField maxField;
+    public TextureLoader textureLoader;
+
+    public void Start()
+    {
+        textureLoader.onRangeChanged = (float vmin, float vmax) =>
+        {
+            minField.text = vmin.ToString();
+            maxField.text = vmax.ToString();
+        };
+    }
 
     public void ResetOnClick()
     {
-        maxField.text = null;
-        minField.text = null;
+        Vector2 values = textureLoader.ResetRange();
+        minField.text = values.x.ToString();
+        maxField.text = values.y.ToString();
     }
 }

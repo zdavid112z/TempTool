@@ -14,7 +14,6 @@ public class FilesContainer : MonoBehaviour
 
 
     List<GameObject> items = new List<GameObject>();
-    int count = 0;
 
     private CloudAPI.ICloudAPI cloud;
 
@@ -24,6 +23,7 @@ public class FilesContainer : MonoBehaviour
         {
             Destroy(items[i]);
         }
+        items.Clear();
     }
 
     private void RenderList()
@@ -47,6 +47,8 @@ public class FilesContainer : MonoBehaviour
             (CloudAPI.FileInfo[] f, long responseCode) =>
             {
                 files = f.ToList();
+                DestroyItems();
+                RenderList();
             }, (CloudAPI.ErrorDetails error) =>
             {
                 Debug.LogError(error);
@@ -55,12 +57,7 @@ public class FilesContainer : MonoBehaviour
 
     void Update()//HandleSearchValue()
     {
-        if (count != files.Count)
-        {
-            DestroyItems();
-            RenderList();
-            count = files.Count;
-        }
+
     }
 
     public void DeleteFile(string id)
