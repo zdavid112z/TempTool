@@ -35,6 +35,7 @@ public class FilesContainer : MonoBehaviour
 
             copy.transform.localPosition = Vector3.zero;
             copy.GetComponentInChildren<Text>().text = files[i].name + " " + files[i].id;
+            copy.GetComponent<DeleteFile>().fileId = files[i].id;
             copy.name = files[i].id;
             items.Add(copy);
         }

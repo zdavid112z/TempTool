@@ -58,6 +58,13 @@ namespace CloudAPI
     }
 
     [Serializable]
+    public class FileUploadData
+    {
+        public string filename;
+        public string data;
+    }
+
+    [Serializable]
     public class FileParameterData
     {
         public string data;

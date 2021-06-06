@@ -8,4 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: d1c3109bdb54ad54c8a2b2838528e640
+  - enabled: 0
+    path: Assets/WebGLFileUploader/Examples/WebGLFileUploaderExample.unity
+    guid: 78df0ace39d4adf4aa41f61b1eff05ae
+  - enabled: 0
+    path: Assets/WebGLFileUploader/Examples/FileUploadExample/FileUploadExample.unity
+    guid: 994ec4107af5eac48b07baa79707593e
   m_configObjects: {}

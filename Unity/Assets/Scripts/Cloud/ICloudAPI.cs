@@ -61,11 +61,12 @@ namespace CloudAPI
         /// <summary>
         /// Uploads a file
         /// </summary>
-        /// <param name="filePath">The path to the file to upload</param>
+        /// <param name="fileName">The name of the file to upload</param>
+        /// <param name="data">The contents of the file to upload</param>
         /// <param name="onSuccess">Function to call if the request succeeds.
         /// The parameter is the response code from the request</param>
         /// <param name="onError">Function to call if the request fails</param>
-        IEnumerator PostFile(string filePath,
+        IEnumerator PostFile(string fileName, byte[] data,
             Action<long> onSuccess, Action<ErrorDetails> onError);
 
         /// <summary>

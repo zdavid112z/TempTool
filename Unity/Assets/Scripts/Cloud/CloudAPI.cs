@@ -34,15 +34,20 @@ namespace CloudAPI
                 onError);
         }
 
-        public IEnumerator PostFile(string filePath,
+        public IEnumerator PostFile(string fileName, byte[] data,
             Action<long> onSuccess, Action<ErrorDetails> onError)
         {
+            FileUploadData uploadData = new FileUploadData()
+            {
+                filename = fileName,
+                data = Convert.ToBase64String(Compression.Deflate(data))
+            };
             return WebRequest(
                 RequestType.kPOST,
                 $"{baseURI}/files",
                 ConvertOnSuccess(onSuccess),
                 onError,
-                new FileRequestBody(filePath));
+                JSONRequestBody.FromObject(uploadData));
         }
 
         public IEnumerator GetFileOriginal(string fileId, 

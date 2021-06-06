@@ -313,7 +313,7 @@ namespace CloudAPI
             onSuccess(200);
         }
 
-        public IEnumerator PostFile(string filePath, Action<long> onSuccess, Action<ErrorDetails> onError)
+        public IEnumerator PostFile(string fileName, byte[] data, Action<long> onSuccess, Action<ErrorDetails> onError)
         {
             yield return new WaitForSeconds(waitDelay);
 
@@ -323,12 +323,12 @@ namespace CloudAPI
                 yield break;
             }
 
-            files.Add(new FileInfoDetailed()
-            {
-                filename = filePath,
-                id = $"random id {filePath}"
-            });
-            onSuccess(200);
+            //files.Add(new FileInfoDetailed()
+            //{
+            //    filename = filePath,
+            //    id = $"random id {filePath}"
+            //});
+            onSuccess(400);
         }
 
         public IEnumerator PostLogin(LoginRequestData request, Action<LoginResponse, long> onSuccess, Action<ErrorDetails> onError)
